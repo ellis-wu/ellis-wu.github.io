@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Amazon 提供了 Alexa Voice Service(AVS) 的服務，希望能讓開發者可以整合 Alexa 至他們的產品之中，並且讓任何連接的設備帶來語音的便利性。Amazon 提供了 AVS Device SDK 讓開發人員可以快速且簡單的建立自己的  Alexa 產品，而 AVS Device SDK 是一個基於 C++ 的 Library，其中包含了語音的捕捉、聲音的處理與通訊等功能">
+<meta name="keywords" content="Amazon,Alexa,Raspberry Pi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱">
+<meta property="og:url" content="http://ellis-wu.github.io/2019/07/15/avs-device-sdk-installation/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="Amazon 提供了 Alexa Voice Service(AVS) 的服務，希望能讓開發者可以整合 Alexa 至他們的產品之中，並且讓任何連接的設備帶來語音的便利性。Amazon 提供了 AVS Device SDK 讓開發人員可以快速且簡單的建立自己的  Alexa 產品，而 AVS Device SDK 是一個基於 C++ 的 Library，其中包含了語音的捕捉、聲音的處理與通訊等功能">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/avs-device-sdk-installation-images/avs-device-sdk-logo.png">
+<meta property="og:updated_time" content="2019-08-14T02:29:12.164Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱">
+<meta name="twitter:description" content="Amazon 提供了 Alexa Voice Service(AVS) 的服務，希望能讓開發者可以整合 Alexa 至他們的產品之中，並且讓任何連接的設備帶來語音的便利性。Amazon 提供了 AVS Device SDK 讓開發人員可以快速且簡單的建立自己的  Alexa 產品，而 AVS Device SDK 是一個基於 C++ 的 Library，其中包含了語音的捕捉、聲音的處理與通訊等功能">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/avs-device-sdk-installation-images/avs-device-sdk-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-avs-device-sdk-installation" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/avs-device-sdk-installation-images/avs-device-sdk-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2019/07/15/avs-device-sdk-installation/">
+            <time datetime="2019-07-14T16:00:00.000Z" itemprop="datePublished">2019-07-15</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/AWS/">AWS</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Alexa/">Alexa</a>, <a class="tag-link" href="/tags/Amazon/">Amazon</a>, <a class="tag-link" href="/tags/Raspberry-Pi/">Raspberry Pi</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>Amazon 提供了 Alexa Voice Service(AVS) 的服務，希望能讓開發者可以整合 Alexa 至他們的產品之中，並且讓任何連接的設備帶來語音的便利性。Amazon 提供了 AVS Device SDK 讓開發人員可以快速且簡單的建立自己的 <strong> Alexa 產品</strong>，而 AVS Device SDK 是一個基於 <code>C++</code> 的 Library，其中包含了語音的捕捉、聲音的處理與通訊等功能，而每個元件都提供 API 給開發者使用與客製化整合至自己的產品中。</p>
+<a id="more"></a>
+<h2 id="AVS-Device-SDK-架構"><a href="#AVS-Device-SDK-架構" class="headerlink" title="AVS Device SDK 架構"></a>AVS Device SDK 架構</h2><p>如下圖所示，說明 AVS Device SDK 各個元件之間的資料流。</p>
+<p><img src="/images/avs-device-sdk-installation-images/avs-device-sdk-architecture.png" alt="AVS Device SDK Architectrue"></p>
+<h5 id="Audio-Signal-Processor-ASP"><a href="#Audio-Signal-Processor-ASP" class="headerlink" title="Audio Signal Processor (ASP)"></a>Audio Signal Processor (ASP)</h5><p>它是一個第三方軟體，主要為處理聲音訊號輸入與輸出使其獲得一個乾淨的聲音訊號，其中可能包含<a href="https://zh.wikipedia.org/wiki/%E5%9B%9E%E9%9F%B3%E6%B6%88%E9%99%A4" target="_blank" rel="noopener">回音消除 (Acoustic Echo Cancellation, AEC)</a>、固定或者自適應的<a href="https://zh.wikipedia.org/wiki/%E6%B3%A2%E6%9D%9F%E8%B5%8B%E5%BD%A2" target="_blank" rel="noopener">波束成型 (Beamforming)</a>、<a href="https://zh.wikipedia.org/wiki/%E8%AF%AD%E9%9F%B3%E6%B4%BB%E6%80%A7%E6%A3%80%E6%B5%8B" target="_blank" rel="noopener">語音活性檢測 (Voice activity detection, VAD)</a> 以及<a href="https://zh.wikipedia.org/wiki/%E5%8A%A8%E6%80%81%E8%8C%83%E5%9B%B4%E5%8E%8B%E7%BC%A9" target="_blank" rel="noopener">動態範圍壓縮 (Dynamic Range Compression, DRC)</a>。若使用麥克風陣列，則 ASP 建構並輸出陣列的單個音頻流。</p>
+<h5 id="Shared-Data-Stream-SDS"><a href="#Shared-Data-Stream-SDS" class="headerlink" title="Shared Data Stream (SDS)"></a>Shared Data Stream (SDS)</h5><p>它是一個單一的 producer 或 multi-consumer buffer，其允許在一個寫入者 (writer) 或多個讀取者 (reader) 之間傳送任何類型的資料。而 SDS 有兩個主要的功能：</p>
+<ol>
+<li>發送到 AVS 之前，在音頻前端 (or Audio Signal Processor)、Wake Word Engine (WWE) 以及 Alexa Communications Library (ACL) 之間傳遞音訊資料。</li>
+<li>透過 Alaexa Communications Library (ACL) 將由 AVS 發送的資料附件傳遞給特定的 Capbility Agents。</li>
+</ol>
+<p>SDS 在 product-specific 記憶體分段 (or user-specif) 上的環形<a href="https://zh.wikipedia.org/wiki/%E7%92%B0%E5%BD%A2%E7%B7%A9%E8%A1%9D%E5%8D%80" target="_blank" rel="noopener">緩衝區 (ring buffer)</a> 所實現的，這允許將其用於行程或行程間通訊 (interprocess communication)。請注意，寫入者 (writer) 和讀取者 (reader) 可能是不同的執行緒或行程。</p>
+<h5 id="Wake-Word-Engine-WWE"><a href="#Wake-Word-Engine-WWE" class="headerlink" title="Wake Word Engine (WWE)"></a>Wake Word Engine (WWE)</h5><p>它是一個在輸入串流中發現識別詞的軟體，由兩個 binary interfaces 組成。第一個處理喚醒詞識別 (或檢測)；第二個處理特定的喚醒詞模型 (在官方 AVS Device SDK 中的範例是 Alexa)。而這取決於你如何實現，WWE 可以在 SOC 或專用的晶片上執行，像是數位信號處理器 (Digital Singal Processor, DSP)。</p>
+<h5 id="Audio-Input-Processor-AIP"><a href="#Audio-Input-Processor-AIP" class="headerlink" title="Audio Input Processor (AIP)"></a>Audio Input Processor (AIP)</h5><p>處理透過 Alexa Communications Library (ACL) 發送到 AVS 的音頻輸入，這些包括設備上的麥克風、遠程麥克風和其他音訊輸入源。而 Audio Input Processor (AIP) 還包括了再不同音頻輸入源之間切換的邏輯，在給定的時間內只能將一個音頻輸入源發送到 AVS。</p>
+<h5 id="Alexa-Communications-Library-ACL"><a href="#Alexa-Communications-Library-ACL" class="headerlink" title="Alexa Communications Library (ACL)"></a>Alexa Communications Library (ACL)</h5><p>是客戶端與 AVS 之間的溝通的主要橋樑。並執行兩個關鍵功能：</p>
+<ol>
+<li>與 AVS 建立並維護長時間的持久連線。ACL 遵守訊息規範的詳細說明，請參考 <a href="https://developer.amazon.com/docs/alexa-voice-service/manage-http2-connection.html" target="_blank" rel="noopener">Manage HTTP/2 Request to AVS</a>。</li>
+<li>提供訊息的傳送與接收的能力，其中包括支援 JSON 格式與二進制音頻內容。請參考 <a href="https://developer.amazon.com/public/solutions/alexa/alexa-voice-service/docs/avs-http2-requests" target="_blank" rel="noopener">Structuring an HTTP/2 Request to AVS</a>。</li>
+</ol>
+<h5 id="Alexa-Directive-Sequencer-Library-ADSL"><a href="#Alexa-Directive-Sequencer-Library-ADSL" class="headerlink" title="Alexa Directive Sequencer Library (ADSL)"></a>Alexa Directive Sequencer Library (ADSL)</h5><p>管理從 AVS 來的指令順序與命令，請參考 <a href="https://developer.amazon.com/docs/alexa-voice-service/interaction-model.html#channels" target="_blank" rel="noopener">AVS Interaction Model</a>。該元件管理每個指令的生命週期並通知 Directive Handler (可能是也可能不是 Capability Agents) 來處理訊息。</p>
+<h5 id="Activity-Focus-Manager-Library-AFML"><a href="#Activity-Focus-Manager-Library-AFML" class="headerlink" title="Activity Focus Manager Library (AFML)"></a>Activity Focus Manager Library (AFML)</h5><p>為設備提供 audiovisual focus 的集中式管理，Focus 是基於 channels 的，如 <a href="https://developer.amazon.com/public/solutions/alexa/alexa-voice-service/reference/interaction-model#channels" target="_blank" rel="noopener">AVS Interaction Model</a> 中所描述，用於管理 audiovisual focus 輸入與輸出的優先順序。</p>
+<p>Channels 可以在前景或背景，而在同一個時間，只有一個 channel 可以在前景並且擁有 focus。如果多個 channels 處於 active 狀態，則需要遵循以下優先順序：Dialog &gt; Alert &gt; Content。當在前景的 channel 變為 inactive 狀態，則優先順序中的下一個 active channel 將移至前景。 </p>
+<p>Focus 管理並不限定 Capability Agents 或 Directive Handlers，也可以由非 Alexa 相關 agents 使用。它允許所有使用 Activity Focus Manager Library (AFML) 的所有 agent 在設備上具有一致的 Focus。</p>
+<h5 id="Capability-Agents"><a href="#Capability-Agents" class="headerlink" title="Capability Agents"></a>Capability Agents</h5><p>處理 Alexa-driven 的交互；特別是指令和事件。每個 capability agent 對應於 AVS API 公開的特定 interfaces，這些 interfaces 包括：</p>
+<ul>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/alerts.html" target="_blank" rel="noopener">Alerts</a>：設定、停止和刪除計時器與警報的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/audioplayer.html" target="_blank" rel="noopener">AudioPlayer</a>：管理與控制 audio playback 的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/bluetooth.html" target="_blank" rel="noopener">Bluetooth</a>：管理裝置與 Alexa-enabled product 之間藍芽連線的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service//donotdisturb.html" target="_blank" rel="noopener">DoNotDisturb</a>：啟用勿擾功能的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/equalizercontroller.html" target="_blank" rel="noopener">EqualizerController</a>：調整等化器設定的 interface；例如：分貝等級和模式。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/interactionmodel-interface.html" target="_blank" rel="noopener">InteractionModel</a>：此 interface 允許客戶端支援 Alexa 發起的複雜交互；例如：Alexa Routines。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/notifications.html" target="_blank" rel="noopener">Notifications</a>：顯示通知指示器的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/playbackcontroller.html" target="_blank" rel="noopener">PlaybackController</a>：透過 GUI 或按鈕導向至播放佇列的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/speaker.html" target="_blank" rel="noopener">Speaker</a>：音量控制且包含靜音與取消靜音的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/speechrecognizer.html" target="_blank" rel="noopener">SpeechRecognizer</a>：語音捕獲的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/speechsynthesizer.html" target="_blank" rel="noopener">SpeechSynthesizer</a>：Alexa 語音輸出的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/system.html" target="_blank" rel="noopener">System</a>：將產品狀態與狀況傳送給 AVS 的 interface。</li>
+<li><a href="https://developer.amazon.com/docs/alexa-voice-service/templateruntime.html" target="_blank" rel="noopener">TemplateRuntime</a>：呈現可視化 metadata 的 interface。</li>
+</ul>
+<h2 id="安裝-AVS-Device-SDK"><a href="#安裝-AVS-Device-SDK" class="headerlink" title="安裝 AVS Device SDK"></a>安裝 AVS Device SDK</h2><p>AVS Device SDK 提供一些腳本來快速安裝與與建構並且啟用了喚醒詞。喚醒詞部分目前有兩個較知名的開源版 (<a href="https://github.com/Sensory/alexa-rpi" target="_blank" rel="noopener">Sensory</a> 與 <a href="https://github.com/Kitt-AI/snowboy" target="_blank" rel="noopener">Snowboy</a>)，而 AVS Device SDK 官方提供的的快速安裝教學中的 Wake Word Engine (WWE) 預設是使用<code>Sensory</code>，但<code>Snowboy</code>亦是個不錯的選擇，它提供了額外幾種訓練好的喚醒詞；像是<code>Computer</code>與<code>Jarvis</code>等等。</p>
+<h3 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h3><p>本文教學是在 Raspberry Pi 上安裝 AVS Device SDK。所以執行 AVS 前需要準備一些東西：</p>
+<ul>
+<li><strong>麥克風</strong>，需要將 Raspberry Pi 上的 Audio 輸出設定此麥克風。</li>
+<li><strong>喇叭</strong>，可以用外接喇叭或者用耳機接至 Raspberry Pi 上的 3.5 mm 音源孔。</li>
+<li>Rasberry Pi 必須擁有<strong>網路</strong>連線能力。</li>
+<li>Raspbian <strong>Stretch</strong> With Desktop。</li>
+</ul>
+<blockquote class="colorquote danger"><ul>
+<li>本篇嘗試使用 AVS 時，Raspbian 已經釋出 Buster 版本，但 Buster 版本在安裝過程中會有些套件版本上有問題。若裝 Jessie 版本則有些套件需要自己 build，可以參考這篇<a href="https://downloads.raspberrypi.org/raspbian/images/" target="_blank" rel="noopener">安裝說明</a>。</li>
+<li>若要下載 Raspbian Stretch 版本或各個版本，可以從<a href="https://downloads.raspberrypi.org/raspbian/images/" target="_blank" rel="noopener">這裡</a>尋找。</li>
+</ul>
+</blockquote>
+<h3 id="準備安裝腳本"><a href="#準備安裝腳本" class="headerlink" title="準備安裝腳本"></a>準備安裝腳本</h3><p>當以上東西都準備完成後，需要先下載幾個安裝腳本：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-get update</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> wget https://raw.githubusercontent.com/alexa/avs-device-sdk/master/tools/Install/setup.sh \</span><br><span class="line">  wget https://raw.githubusercontent.com/alexa/avs-device-sdk/master/tools/Install/genConfig.sh \</span><br><span class="line">  wget https://raw.githubusercontent.com/alexa/avs-device-sdk/master/tools/Install/pi.sh</span><br></pre></td></tr></table></figure></p>
+<h3 id="授權-Authorization"><a href="#授權-Authorization" class="headerlink" title="授權 (Authorization)"></a>授權 (Authorization)</h3><p>在使用 AVS Device SDK 所提供的 SampleApp 之前，需要到 Alexa Cloud 上設定一些相關資訊，讓 Raspberry Pi 能進行授權使其能使用 Alexa 的功能。</p>
+<h4 id="註冊產品與建立-Security-Profile"><a href="#註冊產品與建立-Security-Profile" class="headerlink" title="註冊產品與建立 Security Profile"></a>註冊產品與建立 Security Profile</h4><p>當註冊 Amazon developer account 後，皆要建立一個新的 Alexa 產品與 Security profile。步驟如下：</p>
+<ol>
+<li>登入 Amazon Developer Portal。</li>
+<li>上方導航列選擇 <strong>[Alexa]</strong> 後，下拉式選單中選擇 <strong>[Alexa Voice Service]</strong>。</li>
+<li>點擊 <strong>[Create Product]</strong>。</li>
+</ol>
+<p><img src="/images/avs-device-sdk-installation-images/create-alexa-product.png" alt="Create Alexa Product"></p>
+<p>接下來，開始創建一個 Alexa Product，所以要提供並填入一些資訊：</p>
+<ol>
+<li><strong>Product Name</strong>：這是會呈現給使用者看的；當使用者註冊該產品時會顯示的名稱。</li>
+<li><strong>Product ID</strong>：該產品的 identifier。<br><img src="/images/avs-device-sdk-installation-images/alexa-product-information.png" alt="Alexa Product Information"></li>
+<li><strong>Product Type</strong> 選擇 <strong>[Device with Alexa built-in]</strong>。</li>
+<li>選擇後，會詢問是否將會使用 companion app，這邊選擇 <strong>[No]</strong>。<br><img src="/images/avs-device-sdk-installation-images/alexa-proudct-type-and-app.png" alt="Alexa Product Type and APP"></li>
+<li><strong>Product Category</strong> 選擇 <strong>[Other]</strong> 並且輸入 <strong>[Sample build on Raspberry Pi]</strong>。<br>(若是商業產品，請依照自己的情況選擇。)</li>
+<li>輸入 <strong>Brief product description</strong>。<br><img src="/images/avs-device-sdk-installation-images/alexa-product-category.png" alt="Alexa Product Category"></li>
+<li>使用者如何與產品交互，請依照自己的情況選擇。範例如下：<br><img src="/images/avs-device-sdk-installation-images/alexa-product-interact.png" alt="Alexa Product Interact"></li>
+<li><strong>(Options)</strong> 目前可以跳過上傳圖片的步驟。而該圖片是產品的圖示，在 <a href="https://www.amazon.com/" target="_blank" rel="noopener">amazon.com</a> 上可以搜尋到該產品且顯示該圖片。<br><img src="/images/avs-device-sdk-installation-images/alexa-product-image.png" alt="Alexa Product Image"></li>
+<li>是否將會發行該產品，這邊選擇 <strong>[No]</strong>。<br>(若是商業產品，請選擇 <strong>[Yes]</strong>。)</li>
+<li>是否有使用到 <a href="https://aws.amazon.com/alexaforbusiness/" target="_blank" rel="noopener">Alexa Business</a> 與 AWS IOT Core，這請依照自己的情況選擇。</li>
+<li>這是否是兒童產品或針對 13 歲以下孩童的產品，請選擇 <strong>[No]</strong>。<br><img src="/images/avs-device-sdk-installation-images/alexa-product-questions.png" alt="Alexa Product Questions"></li>
+</ol>
+<p>以上資訊都填寫完成後，可以按下 <strong>[NEXT]</strong> 按鈕。若都沒有問題，會轉跳至 Login in With (LWA) Security Profile 的頁面。這是將使用者資料和安全憑證 (security credentials) 與產品關聯的動作。因此，這邊建立一個新的 Security Profile：</p>
+<ol>
+<li>選擇 <strong>[Create New Profile]</strong>。<br><img src="/images/avs-device-sdk-installation-images/create-new-security-profile.png" alt="Create New Security Profile"></li>
+<li>輸入 Security Profile 的名稱與描述，輸入完成後點擊 <strong>[Next]</strong>。<br><img src="/images/avs-device-sdk-installation-images/new-security-profile-fields.png" alt="New Security Profile Fields"></li>
+<li>再來會產生出<code>Client ID</code>等資訊。這邊我們在 <strong>Platform information</strong> 的導航列上選擇 <strong>[Other devices and platforms]</strong>，並且輸入 <strong>[Client ID]</strong> 後，按下 <strong>[Generate ID]</strong> 按鈕。<br><img src="/images/avs-device-sdk-installation-images/security-profile-generate-id.png" alt="Security Profile Generate ID"></li>
+<li>接著會看到 <strong>[Download]</strong> 按鈕點擊並下載它為<code>config.json</code>，這檔案包含了與 security profile 相關的<code>clientID</code>與<code>productID</code>。而這個檔案將會在後續執行 AVS Device SDK 提供的 SampleApp 用到。<br><img src="/images/avs-device-sdk-installation-images/security-profile-download.png" alt="Security Profile Download"></li>
+<li>閱讀並同意 <a href="https://developer.amazon.com/support/legal/da" target="_blank" rel="noopener">Amazon Developer Services Agreement</a>, including the <a href="https://developer.amazon.com/public/solutions/alexa/alexa-voice-service/support/terms-and-agreements" target="_blank" rel="noopener">Alexa Voice Services Program Requirements</a>。接著按下 <strong>[Finish]</strong> 按鈕。</li>
+<li>若填寫資訊沒問題會彈出 <strong>Your Product has been created</strong> 的視窗。<br><img src="/images/avs-device-sdk-installation-images/alexa-product-created.png" alt="Alexa Product Created"></li>
+</ol>
+<p>接下來，我們要啟用剛剛的 Security Profile：</p>
+<ol>
+<li>打開瀏覽器並前往 <a href="https://developer.amazon.com/lwa/sp/overview.html" target="_blank" rel="noopener">LWA Console</a>。</li>
+<li>在 <strong>[Select a Security Profile]</strong> 的下拉式選單選擇剛剛建立的 Security Profile，並點擊 <strong>[Confirm]</strong> 按鈕。<br><img src="/images/avs-device-sdk-installation-images/select-security-profile.png" alt="Select Security Profile"></li>
+<li>輸入 <strong>[privacy policy URL]</strong>。<br><img src="/images/avs-device-sdk-installation-images/security-profile-privacy-policy-url.png" alt="Security Profile Privacy Policy URL"></li>
+<li><strong>(Options)</strong> 上傳圖片，而該圖片會在使用者進行 LWA 時會顯示的圖片。</li>
+<li>若以上資訊都填寫完成後，按下 <strong>[Save]</strong> 按鈕。</li>
+</ol>
+<p>儲存成功後，可以看到剛剛為 Alexa Product 建立的 Security Profile 已經啟用。</p>
+<p><img src="/images/avs-device-sdk-installation-images/security-profile-enabled.png" alt="Security Profile Enabled"></p>
+<h3 id="執行安裝腳本"><a href="#執行安裝腳本" class="headerlink" title="執行安裝腳本"></a>執行安裝腳本</h3><p>將剛剛在 Security Profile 中下載的<code>config.json</code>放至<code>/home/pi</code>。透過腳本進行安裝：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> cd /home/pi</span><br><span class="line"><span class="meta">$</span> sudo bash setup.sh config.json -s 998987</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><ul>
+<li><code>-s</code>為這台裝置的 serial number，可以把它視為這台裝置的唯一碼。</li>
+<li>若不輸入這個參數預設為<code>123456</code>。</li>
+</ul>
+</blockquote>
+<p>當上面指令輸入後，馬上會跳出 AVS Device SDK 的服務條款，會要你輸入 <strong>agree</strong> 同意使用第三方的 library，再按下 <strong>Enter</strong> 繼續安裝。<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span>###############################################################################</span><br><span class="line"><span class="meta">#</span>###############################################################################</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">AVS Device SDK Raspberry pi Script - Terms and Agreements</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">The AVS Device SDK is dependent on several third-party libraries, environments,</span><br><span class="line">and/or other software packages that are installed using this script from</span><br><span class="line">third-party sources ("External Dependencies"). These are terms and conditions</span><br><span class="line">associated with the External Dependencies</span><br><span class="line">(available at https://github.com/alexa/avs-device-sdk/wiki/Dependencies) that</span><br><span class="line">you need to agree to abide by if you choose to install the External Dependencies.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">If you do not agree with every term and condition associated with the External</span><br><span class="line">Dependencies, enter "QUIT" in the command line when prompted by the installer.</span><br><span class="line">Else enter "AGREE".</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>###############################################################################</span><br><span class="line"><span class="meta">#</span>###############################################################################</span><br></pre></td></tr></table></figure></p>
+<p>安裝過程中，會停止並且等待接受 Sensory Wake Word 的服務條款，這時按下 <strong>Enter</strong> 後在輸入 <strong>yes</strong> 即可。<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">==============&gt; CLONING AND BUILDING SENSORY ==============</span><br><span class="line"></span><br><span class="line">Cloning into 'alexa-rpi'...</span><br><span class="line">remote: Enumerating objects: 232, done.</span><br><span class="line">remote: Counting objects: 100% (232/232), done.</span><br><span class="line">remote: Compressing objects: 100% (149/149), done.</span><br><span class="line">remote: Total 232 (delta 73), reused 232 (delta 73), pack-reused 0</span><br><span class="line">Receiving objects: 100% (232/232), 9.32 MiB | 1.95 MiB/s, done.</span><br><span class="line">Resolving deltas: 100% (73/73), done.</span><br><span class="line">The Sensory TrulyHandsfree binaries are not licensed.</span><br><span class="line">Press RETURN to review the license agreement and update the files.</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>整個安裝過程大約 20 分鐘。</p>
+</blockquote>
+<h3 id="執行範例程式"><a href="#執行範例程式" class="headerlink" title="執行範例程式"></a>執行範例程式</h3><p>安裝完成後，透過以下指令執行 AVS Device SDK 的範例程式：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> cd /home/pi</span><br><span class="line"><span class="meta">$</span> sudo bash startsample.sh</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>若之後要重新執行都是使用上面的指令。</p>
+</blockquote>
+<p>會看到以下畫面等待進行授權啟用：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span>#####################################################</span><br><span class="line"><span class="meta">#</span>       &gt; &gt; &gt; &gt; &gt; NOT YET AUTHORIZED &lt; &lt; &lt; &lt; &lt;       #</span><br><span class="line"><span class="meta">#</span>#####################################################</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>###########################################################################################</span><br><span class="line"><span class="meta">#</span>     To authorize, browse to: 'https://amazon.com/us/code' and enter the code: &#123;XXXX&#125;     #</span><br><span class="line"><span class="meta">#</span>###########################################################################################</span><br></pre></td></tr></table></figure></p>
+<p>此時，複製上面的網址並在瀏覽器打開後，輸入 Amazon 帳號密碼進行登入，在輸入 code 來完成授權與驗證。</p>
+<p>等待驗證成功後 (可能需要等待 30 秒左右)，成功後會看到類似以下資訊：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span>#######################################</span><br><span class="line"><span class="meta">#</span>       Alexa is currently idle!       #</span><br><span class="line"><span class="meta">#</span>#######################################</span><br></pre></td></tr></table></figure></p>
+<p>若看到以上訊息，AVS Device SDK 的 SampleApp 已經正常執行。而下次啟動就不需要在授權與驗證會自動授權與驗證。</p>
+<blockquote class="colorquote warning"><p>過程中會看到許多 log 資訊。因此這是範例程式為了方便 debug，所以才會顯示很多 log 資訊。</p>
+</blockquote>
+<h3 id="Talk-with-Alexa"><a href="#Talk-with-Alexa" class="headerlink" title="Talk with Alexa"></a>Talk with Alexa</h3><p>此時，已經在 Raspberry Pi 上執行 Alexa 了，可以透過麥克風來體驗 Alexa 帶來的便利。</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2019/07/15/avs-device-sdk-installation/" data-id="cjzamyaxk0001w72np6b4uia5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2019/07/15/avs-device-sdk-installation/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2019/07/15/avs-device-sdk-installation/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2019/07/17/avs-device-sdk-wwe/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    更換 AVS Device SDK 的喚醒詞
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2018/07/26/kustomize-introduction/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">使用 Kustomize 管理 Kubernetes 配置檔</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#AVS-Device-SDK-架構"><span class="toc-number">1.</span> <span class="toc-text">AVS Device SDK 架構</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-AVS-Device-SDK"><span class="toc-number">2.</span> <span class="toc-text">安裝 AVS Device SDK</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#事前準備"><span class="toc-number">2.1.</span> <span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#準備安裝腳本"><span class="toc-number">2.2.</span> <span class="toc-text">準備安裝腳本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#授權-Authorization"><span class="toc-number">2.3.</span> <span class="toc-text">授權 (Authorization)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#執行安裝腳本"><span class="toc-number">2.4.</span> <span class="toc-text">執行安裝腳本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#執行範例程式"><span class="toc-number">2.5.</span> <span class="toc-text">執行範例程式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Talk-with-Alexa"><span class="toc-number">2.6.</span> <span class="toc-text">Talk with Alexa</span></a></li></ol></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2019/07/15/avs-device-sdk-installation/';
+        
+        this.page.identifier = 'avs-device-sdk-installation';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

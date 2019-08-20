@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>企業等級的 Docker Registry Harbor | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Harbor 是一個企業級 Registry 伺服器用於儲存和分散 Docker Image 的，透過新增一些企業常用的功能，例如：安全性、身分驗證和管理等功能擴展了開源的 Docker Distribution。作為一個企業級的私有 Registry 伺服器，Harbor 提供了更好的效能與安全性。Harbor 支援安裝多個 Registry 並將 Image 在多個 Registry 做 re">
+<meta name="keywords" content="Harbor,Docker Registry">
+<meta property="og:type" content="article">
+<meta property="og:title" content="企業等級的 Docker Registry Harbor">
+<meta property="og:url" content="http://ellis-wu.github.io/2018/05/03/harbor-docker-registry/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="Harbor 是一個企業級 Registry 伺服器用於儲存和分散 Docker Image 的，透過新增一些企業常用的功能，例如：安全性、身分驗證和管理等功能擴展了開源的 Docker Distribution。作為一個企業級的私有 Registry 伺服器，Harbor 提供了更好的效能與安全性。Harbor 支援安裝多個 Registry 並將 Image 在多個 Registry 做 re">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/harbor-docker-registry-images/harbor-logo.jpg">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="企業等級的 Docker Registry Harbor">
+<meta name="twitter:description" content="Harbor 是一個企業級 Registry 伺服器用於儲存和分散 Docker Image 的，透過新增一些企業常用的功能，例如：安全性、身分驗證和管理等功能擴展了開源的 Docker Distribution。作為一個企業級的私有 Registry 伺服器，Harbor 提供了更好的效能與安全性。Harbor 支援安裝多個 Registry 並將 Image 在多個 Registry 做 re">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/harbor-docker-registry-images/harbor-logo.jpg">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-harbor-docker-registry" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/harbor-docker-registry-images/harbor-logo.jpg" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            企業等級的 Docker Registry Harbor
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/05/03/harbor-docker-registry/">
+            <time datetime="2018-05-02T16:00:00.000Z" itemprop="datePublished">2018-05-03</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Container/">Container</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Docker-Registry/">Docker Registry</a>, <a class="tag-link" href="/tags/Harbor/">Harbor</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>Harbor 是一個企業級 Registry 伺服器用於儲存和分散 Docker Image 的，透過新增一些企業常用的功能，例如：安全性、身分驗證和管理等功能擴展了開源的 <a href="https://github.com/docker/distribution" target="_blank" rel="noopener">Docker Distribution</a>。作為一個企業級的私有 Registry 伺服器，Harbor 提供了更好的效能與安全性。Harbor 支援安裝多個 Registry 並將 Image 在多個 Registry 做 replicated。除此之外，Harbor 亦提供了高級的安全性功能，像是用戶管理(user managment)，存取控制(access control)和活動審核(activity auditing)。</p>
+<a id="more"></a>
+<h2 id="功能特色"><a href="#功能特色" class="headerlink" title="功能特色"></a>功能特色</h2><ul>
+<li><strong>基於角色為基礎的存取控制(Role based access control)</strong>：使用者和 Repository 透過 Project 進行組織管理，一個使用者在同一個 Project 下，對於每個 Image 可以有不同權限。</li>
+<li><strong>基於 Policy 的 Image 複製</strong>：Image 可以在多得 Registry instance 中同步複製。適合於附載平衡、高可用性、混合雲與多雲的情境。</li>
+<li><strong>支援 LDAP/AD</strong>：Harbor 可以整合企業已有的 LDAP/AD，來管理使用者的認證與授權。</li>
+<li><strong>使用者的圖形化介面</strong>：使用者可以透過瀏覽器，查詢 Image 和管理 Project</li>
+<li><strong>審核管理</strong>：所有對 Repositroy 的操作都被記錄。</li>
+<li><strong>RESTful API</strong>：RESTful APIs 提供給管理的操作，可以輕易的整合額外的系統。</li>
+<li><strong>快速部署</strong>：提供 Online installer 與 Offline installer。</li>
+</ul>
+<h2 id="安裝方式"><a href="#安裝方式" class="headerlink" title="安裝方式"></a>安裝方式</h2><p>Harbor 提供三種方法進行安裝：</p>
+<ol>
+<li><strong>Online Installer</strong>：這種安裝方式會從 Docker hub 下載 Harbor 所需的映像檔，因此 Installer 檔案較輕量；</li>
+<li><strong>Offline Installer</strong>：當無任何網際網路連接的情況下使用此種安裝方式，預先將所需的映像檔打包，因此 Installer 檔案較大；</li>
+<li><strong>OVA Installer</strong>：當使用者的環境是 vCenter 時使用此安裝。OVA 部署後 Harbor 才啟動，更多詳細資訊請參考 <a href="https://github.com/vmware/harbor/blob/master/docs/install_guide_ova.md" target="_blank" rel="noopener">Harbor OVA install guide</a>。</li>
+</ol>
+<h2 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h2><p>Harbor 會部署數個 Docker container，所以部署的主機需要能支援 Docker 的 Linux 發行版本。而部署主機需要安裝 Python、Docker 以及 Docker Compose 等軟體。</p>
+<p>硬體需求：</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Capacity</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>minimal 2 CPU</td>
+<td>4 CPU is prefered</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>minimal 4 GB</td>
+<td>8 GB is prefered</td>
+</tr>
+<tr>
+<td>Disk</td>
+<td>minimal 40 GB</td>
+<td>160 GB is prefered</td>
+</tr>
+</tbody>
+</table>
+<p>軟體需求：</p>
+<table>
+<thead>
+<tr>
+<th>Software</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>v2.7+</td>
+</tr>
+<tr>
+<td>Docker Engine</td>
+<td>v1.10+</td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>v1.6.0+</td>
+</tr>
+<tr>
+<td>OpenSSL</td>
+<td>latest is prefered</td>
+</tr>
+</tbody>
+</table>
+<p>Network Port：</p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Protocol</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>443</td>
+<td>HTTPS</td>
+<td>Harbor UI 與 API 會使用此 Port 進行 HTTPS 的溝通</td>
+</tr>
+<tr>
+<td>4443</td>
+<td>HTTPS</td>
+<td>若有使用 Notary 才會使用到此 Port</td>
+</tr>
+<tr>
+<td>80</td>
+<td>HTTP</td>
+<td>Harbor UI 與 API 會使用此 Port 進行 HTTP 的溝通</td>
+</tr>
+</tbody>
+</table>
+<blockquote class="colorquote info"><p>本文安裝的 Harbor 各軟體版本資訊：</p>
+<ul>
+<li>Harbor 版本為 v1.4.0</li>
+<li>Docker 版本為 18.04.0-ce</li>
+<li>docker-compose 版本為 1.21.0</li>
+<li>Python 版本為 2.7.12</li>
+</ul>
+</blockquote>
+<h2 id="安裝-Harbor"><a href="#安裝-Harbor" class="headerlink" title="安裝 Harbor"></a>安裝 Harbor</h2><p>Harbor 安裝主要分為以下三個步驟：</p>
+<ol>
+<li>下載 Installer；</li>
+<li>設定 harbor.cfg；</li>
+<li>執行 run.sh 開始安裝與啟動 Harbor。</li>
+</ol>
+<h3 id="下載-Installer"><a href="#下載-Installer" class="headerlink" title="下載 Installer"></a>下載 Installer</h3><p>Installer 的 binary 檔可以從 <a href="https://github.com/vmware/harbor/releases" target="_blank" rel="noopener">release page</a> 下載，選擇使用的是 Online Installer 或 Offline Installer，下載完成後，使用<code>tar</code>將 package 解壓縮。</p>
+<p>Online Installer：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> tar xvf harbor-online-installer-&lt;version&gt;.tgz</span><br></pre></td></tr></table></figure></p>
+<p>Offline Installer：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> tar xvf harbor-offline-installer-&lt;version&gt;.tgz</span><br></pre></td></tr></table></figure></p>
+<h3 id="設定-Harbor"><a href="#設定-Harbor" class="headerlink" title="設定 Harbor"></a>設定 Harbor</h3><p>Harbor 所有的設定與參數都在<code>harbor.cfg</code>中。</p>
+<p><code>harbor.cfg</code>中的參數分為<strong>required parameters</strong>與<strong>optional parameters</strong></p>
+<ul>
+<li><strong>Required parameters</strong>：這類的參數是必須設定的，且會影響使用者更新<code>harbor.cfg</code>後，重新執行安裝腳本來重新安裝 Harbor。</li>
+<li><strong>Optional parameters</strong>：這類的參數為使用者自行決定是否設定，且只會在第一次安裝時，這些參數的配置才會生效。而 Harbor 啟動後，可以透過 Web UI 進行修改。</li>
+</ul>
+<p>而最基本的安裝僅需修改<code>harbor.cfg</code>中的<code>hostname</code>參數，將其更改為自己的<code>hostname</code>即可。</p>
+<blockquote class="colorquote info"><p>參數設定本文件不再詳述，若想要了解請參考以下網址：</p>
+<ul>
+<li><a href="https://github.com/vmware/harbor/blob/master/docs/installation_guide.md#required-parameters" target="_blank" rel="noopener">Required parameters</a></li>
+<li><a href="https://github.com/vmware/harbor/blob/master/docs/installation_guide.md#optional-parameters" target="_blank" rel="noopener">Optional parameters</a></li>
+</ul>
+</blockquote>
+<h3 id="Configuring-storage-backend-optional"><a href="#Configuring-storage-backend-optional" class="headerlink" title="Configuring storage backend (optional)"></a>Configuring storage backend (optional)</h3><p>預設的情況下，Harbor 會將 Docker image 儲存在本機的檔案系統上，在生產環境中，您可以考慮使用其他 storage backend 而不是本機的檔案系統，像是 S3, OpenStack Swift, Ceph 等。而僅需更改<code>common/templates/registry/config.yml</code>。以下為一個接 OpenStack Swift 的範例：<br><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line"><span class="attr">  swift:</span></span><br><span class="line"><span class="attr">    username:</span> <span class="string">admin</span></span><br><span class="line"><span class="attr">    password:</span> <span class="string">ADMIN_PASS</span></span><br><span class="line"><span class="attr">    authurl:</span> <span class="attr">http://keystone_addr:35357/v3/auth</span></span><br><span class="line"><span class="attr">    tenant:</span> <span class="string">admin</span></span><br><span class="line"><span class="attr">    domain:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">    region:</span> <span class="string">regionOne</span></span><br><span class="line"><span class="attr">    container:</span> <span class="string">docker_images</span></span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>更多 storage backend 的資訊，請參考 <a href="https://docs.docker.com/registry/configuration/" target="_blank" rel="noopener">Registry Configuration Reference</a></p>
+</blockquote>
+<h3 id="執行安裝腳本"><a href="#執行安裝腳本" class="headerlink" title="執行安裝腳本"></a>執行安裝腳本</h3><p>一旦<code>harbor.cfg</code>設定完成後，可以透過<code>install.sh</code>腳本開始安裝 Harbor。Harbor 有整合<code>Notary</code>與<code>Clair</code>服務，但以下指令僅會安裝一個最基本的 Harbor 並不會安裝<code>Notary</code>與<code>Clair</code>服務：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo ./install.sh</span><br></pre></td></tr></table></figure></p>
+<p>若要安裝 Clair 與 Harbor，則在 install.sh 後面加上一個參數：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo ./install.sh --with-clair</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>Online Installer 會從 Docker hub 下載 Harbor 所需的映像檔，因此會花較久的時間。</p>
+</blockquote>
+<p>如果安裝過程正常，您可以打開瀏覽器並輸入在<code>harbor.cfg</code>中設定的<code>hostname</code>，來存取 Harbor 的 Web UI。<br><img src="/images/harbor-docker-registry-images/harbor-dashboard.png" alt="Harbor Web UI"></p>
+<blockquote class="colorquote success"><p>預設的管理者帳號密碼為 admin/Harbor12345</p>
+</blockquote>
+<h2 id="開始使用-Harbor"><a href="#開始使用-Harbor" class="headerlink" title="開始使用 Harbor"></a>開始使用 Harbor</h2><p>登入成功後，可以創建一個新的 Project，並使用 Docker command 進行登入，但在登入之前，需要對 Docker daemon 新增<code>--insecure-registry</code>參數。新增<code>--insecure-registry</code>參數至<code>/etc/default/docker</code>中：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">DOCKER_OPTS="--insecure-registry &lt;your harbor.cfg hostname&gt;"</span><br></pre></td></tr></table></figure></p>
+<p>若在 <em><strong>Ubuntu 16.04</strong></em> 版本，還需要修改<code>/lib/systemd/system/docker.service</code>檔案：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">EnvironmentFile=-/etc/default/%p</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// $DOCKER_OPTS</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>其他細節，請參考 <a href="https://docs.docker.com/registry/insecure/#deploying-a-plain-http-registry" target="_blank" rel="noopener">Test an insecure registry</a></p>
+</blockquote>
+<p>修改完成後，重新啟動服務：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo systemctl daemon-reload</span><br><span class="line"><span class="meta">$</span> sudo systemctl restart docker.service</span><br></pre></td></tr></table></figure></p>
+<h3 id="登入-Docker-client"><a href="#登入-Docker-client" class="headerlink" title="登入 Docker client"></a>登入 Docker client</h3><p>服務重啟成功後，透過 Docker command 進行 login：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker login &lt;your harbor.cfg hostname&gt;</span><br></pre></td></tr></table></figure></p>
+<h3 id="Push-Image"><a href="#Push-Image" class="headerlink" title="Push Image"></a>Push Image</h3><p>將映像檔上 tag 之後，上傳至 Harbor：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker tag ubuntu:16.04 &lt;your harbor.cfg hostname&gt;/&lt;your project&gt;/ubuntu:16.04</span><br><span class="line"><span class="meta">$</span> docker push &lt;your harbor.cfg hostname&gt;/&lt;your project&gt;/ubunut:16.04</span><br></pre></td></tr></table></figure></p>
+<p>可以在 Harbor Web UI 上看到剛剛 push 的 docker image。</p>
+<p><img src="/images/harbor-docker-registry-images/psuh-docker-image.png" alt="Push Image to Harbor"></p>
+<h3 id="Pull-Image"><a href="#Pull-Image" class="headerlink" title="Pull Image"></a>Pull Image</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker pull &lt;your harbor.cfg hostname&gt;/&lt;your project&gt;/ubunut:16.04</span><br></pre></td></tr></table></figure>
+<blockquote class="colorquote info"><p>更多使用者操作，請參考 <a href="https://github.com/vmware/harbor/blob/master/docs/user_guide.md" target="_blank" rel="noopener">Harbor User Guide</a></p>
+</blockquote>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://github.com/vmware/harbor" target="_blank" rel="noopener">Harbor Github</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2018/05/03/harbor-docker-registry/" data-id="cjydrq2vu002ews2nen8k24ti" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2018/05/03/harbor-docker-registry/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2018/05/03/harbor-docker-registry/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/06/13/hexo-color-quote/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    Hexo 新增 Color Quote
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2018/05/02/kubeless-installation/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">基於 Kubernetes 的 Serverless 框架 Kubeless</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#功能特色"><span class="toc-number">1.</span> <span class="toc-text">功能特色</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝方式"><span class="toc-number">2.</span> <span class="toc-text">安裝方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事前準備"><span class="toc-number">3.</span> <span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-Harbor"><span class="toc-number">4.</span> <span class="toc-text">安裝 Harbor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#下載-Installer"><span class="toc-number">4.1.</span> <span class="toc-text">下載 Installer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-Harbor"><span class="toc-number">4.2.</span> <span class="toc-text">設定 Harbor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Configuring-storage-backend-optional"><span class="toc-number">4.3.</span> <span class="toc-text">Configuring storage backend (optional)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#執行安裝腳本"><span class="toc-number">4.4.</span> <span class="toc-text">執行安裝腳本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開始使用-Harbor"><span class="toc-number">5.</span> <span class="toc-text">開始使用 Harbor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#登入-Docker-client"><span class="toc-number">5.1.</span> <span class="toc-text">登入 Docker client</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Push-Image"><span class="toc-number">5.2.</span> <span class="toc-text">Push Image</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Pull-Image"><span class="toc-number">5.3.</span> <span class="toc-text">Pull Image</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">6.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2018/05/03/harbor-docker-registry/';
+        
+        this.page.identifier = 'harbor-docker-registry';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

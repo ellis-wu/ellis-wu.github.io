@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>基於 Kubernetes 的 Serverless 框架 Kubeless | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Kubeless 是一個基於 Kubernetes 的無伺服器(Serverless)框架，由 Go 語言所撰寫而成。Kubeless 利用 Kubernetes 資源提供自動擴展(auto-scaling)、API 路由、監控以及故障排除等功能。 而 Kubeless 為什麼能在如此多的無伺服器(Serverless)框架中脫穎而出呢？這是因為 Kubeless 使用 Kubernetes 的">
+<meta name="keywords" content="Kubeless,Kubernetes,Serverless">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基於 Kubernetes 的 Serverless 框架 Kubeless">
+<meta property="og:url" content="http://ellis-wu.github.io/2018/05/02/kubeless-installation/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="Kubeless 是一個基於 Kubernetes 的無伺服器(Serverless)框架，由 Go 語言所撰寫而成。Kubeless 利用 Kubernetes 資源提供自動擴展(auto-scaling)、API 路由、監控以及故障排除等功能。 而 Kubeless 為什麼能在如此多的無伺服器(Serverless)框架中脫穎而出呢？這是因為 Kubeless 使用 Kubernetes 的">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/kubeless-installation-images/kubeless-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基於 Kubernetes 的 Serverless 框架 Kubeless">
+<meta name="twitter:description" content="Kubeless 是一個基於 Kubernetes 的無伺服器(Serverless)框架，由 Go 語言所撰寫而成。Kubeless 利用 Kubernetes 資源提供自動擴展(auto-scaling)、API 路由、監控以及故障排除等功能。 而 Kubeless 為什麼能在如此多的無伺服器(Serverless)框架中脫穎而出呢？這是因為 Kubeless 使用 Kubernetes 的">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/kubeless-installation-images/kubeless-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-kubeless-installation" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/kubeless-installation-images/kubeless-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            基於 Kubernetes 的 Serverless 框架 Kubeless
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/05/02/kubeless-installation/">
+            <time datetime="2018-05-01T16:00:00.000Z" itemprop="datePublished">2018-05-02</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Kubernetes/">Kubernetes</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Kubeless/">Kubeless</a>, <a class="tag-link" href="/tags/Kubernetes/">Kubernetes</a>, <a class="tag-link" href="/tags/Serverless/">Serverless</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>Kubeless 是一個基於 Kubernetes 的<strong>無伺服器(Serverless)框架</strong>，由 Go 語言所撰寫而成。Kubeless 利用 Kubernetes 資源提供自動擴展(auto-scaling)、API 路由、監控以及故障排除等功能。</p>
+<p>而 Kubeless 為什麼能在如此多的無伺服器(Serverless)框架中脫穎而出呢？這是因為 Kubeless 使用 Kubernetes 的 <strong>CRD(Custom Resource Definition)</strong> 來建立 Function，而每個 Function 建立時都會是一個 Deployment，並同時暴露(expose)出一個 Service，透過 Kubernetes 的好處省去開發者開發上的麻煩。而 Kubeless 僅需執行一個<code>in-cluster</code>的 Controller 來監控這些 CRD，並按需求啟動與執行。</p>
+<a id="more"></a>
+<h2 id="事情準備與安裝環境"><a href="#事情準備與安裝環境" class="headerlink" title="事情準備與安裝環境"></a>事情準備與安裝環境</h2><p>本文事先準備了一個 Kubernetes 叢集，且是利用<code>kubeadm</code>所部署而成；環境並非實體機而為虛擬機機。</p>
+<table>
+<thead>
+<tr>
+<th>IP Address</th>
+<th>Role</th>
+<th>CPU</th>
+<th>RAM</th>
+<th>Disk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>172.20.3.19</td>
+<td>Master1</td>
+<td>1 vCPU</td>
+<td>2 GB</td>
+<td>40 GB</td>
+</tr>
+<tr>
+<td>172.20.3.14</td>
+<td>Node1</td>
+<td>1 vCPU</td>
+<td>2 GB</td>
+<td>40 GB</td>
+</tr>
+<tr>
+<td>172.20.3.18</td>
+<td>Node2</td>
+<td>1 vCPU</td>
+<td>2 GB</td>
+<td>40 GB</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Docker 版本為 1.18.02；</li>
+<li>Kubernetes 版本為 1.10.0；Kubernetes CNI 為<code>Calico</code>。</li>
+</ul>
+<blockquote class="colorquote info"><p>利用<code>kubeadm</code>部署 Kubernetes 叢集，可以參考 <a href="https://kairen.github.io/2016/09/29/kubernetes/deploy/kubeadm/" target="_blank" rel="noopener">只要用 kubeadm 小朋友都能部署 Kubernetes</a>。</p>
+</blockquote>
+<h2 id="安裝-Kubeless"><a href="#安裝-Kubeless" class="headerlink" title="安裝 Kubeless"></a>安裝 Kubeless</h2><p>這裡官方為了不同的 Kubernetes 環境提供了不同的 Manifest，請依照自己的需求而選擇對應的檔案：</p>
+<ul>
+<li><code>kubeless-$RELEASE.yaml</code>：使用於有 RBAC 的 Kubernetes 叢集；</li>
+<li><code>kubeless-non-rbac-$RELEASE.yaml</code>：使用於沒有 RBAC 的 Kubernetes 叢集；</li>
+<li><code>kubeless-openshift-$RELEASE.yaml</code>：使用於 OpenShift (1.5+) 上。</li>
+</ul>
+<p>設定 Kubeless 版本並選擇對應的檔案後，透過<code>kubectl</code>建立 Kubeless controller manager 與 CRD：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> export RELEASE=$(curl -s https://api.github.com/repos/kubeless/kubeless/releases/latest | grep tag_name | cut -d '"' -f 4)</span><br><span class="line"><span class="meta">$</span> kubectl create ns kubeless</span><br><span class="line"><span class="meta">$</span> kubectl create -f https://github.com/kubeless/kubeless/releases/download/$RELEASE/kubeless-non-rbac-$RELEASE.yaml</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> kubectl get pods -n kubeless</span><br><span class="line">NAME                                           READY     STATUS    RESTARTS   AGE</span><br><span class="line">kubeless-controller-manager-6f59c58ffd-mlbpd   1/1       Running   0          6h</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> kubectl get deployment -n kubeless</span><br><span class="line">NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE</span><br><span class="line">kubeless-controller-manager   1         1         1            1           6h</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> kubectl get crd</span><br><span class="line">NAME                          AGE</span><br><span class="line">cronjobtriggers.kubeless.io   6h</span><br><span class="line">functions.kubeless.io         6h</span><br><span class="line">httptriggers.kubeless.io      6h</span><br></pre></td></tr></table></figure></p>
+<p>完成後，安裝 Kubeless 的 CLI：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> export OS=$(uname -s| tr '[:upper:]' '[:lower:]')</span><br><span class="line"><span class="meta">$</span> curl -OL https://github.com/kubeless/kubeless/releases/download/$RELEASE/kubeless_$OS-amd64.zip &amp;&amp; \</span><br><span class="line">    unzip kubeless_$OS-amd64.zip &amp;&amp; \</span><br><span class="line">    sudo mv bundles/kubeless_$OS-amd64/kubeless /usr/local/bin/</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>若環境無法<code>unzip</code>請自行透過<code>apt</code>安裝<code>zip</code>。指令如下：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> apt-get install -y zip</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>使用<code>kubeless</code>指令檢查 Kubeless CLI 是否安裝完成：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubeless</span><br><span class="line">Serverless framework for Kubernetes</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  kubeless [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  autoscale         manage autoscale to function on Kubeless</span><br><span class="line">  completion        Output shell completion code for the specified shell.</span><br><span class="line">  function          function specific operations</span><br><span class="line">  get-server-config Print the current configuration of the controller</span><br><span class="line">  help              Help about any command</span><br><span class="line">  topic             manage message topics in Kubeless</span><br><span class="line">  trigger           trigger specific operations</span><br><span class="line">  version           Print the version of Kubeless</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -h, --help   help for kubeless</span><br><span class="line"></span><br><span class="line">Use "kubeless [command] --help" for more information about a command.</span><br></pre></td></tr></table></figure></p>
+<h2 id="安裝-Kubeless-UI"><a href="#安裝-Kubeless-UI" class="headerlink" title="安裝 Kubeless UI"></a>安裝 Kubeless UI</h2><p>Kubeless 提供了 Dashboard，且由 <a href="https://reactjs.org/" target="_blank" rel="noopener">React</a> 所撰寫而成。而安裝方式非常簡單：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl create -f https://raw.githubusercontent.com/kubeless/kubeless-ui/master/k8s.yaml</span><br></pre></td></tr></table></figure></p>
+<p>在 Dashboard 上會遇到 RBAC 的問題，因此需要建立一個 Cluster Role：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> cat &lt;&lt;EOF | kubectl create -f -</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">metadata:</span><br><span class="line">  name: kubeless-ui-default</span><br><span class="line">roleRef:</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: cluster-admin</span><br><span class="line">subjects:</span><br><span class="line">  - kind: User</span><br><span class="line">    name: system:serviceaccount:kubeless:ui-acct</span><br><span class="line">    apiGroup: rbac.authorization.k8s.io</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure></p>
+<p>確認 Kubeless UI 的 Service：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl -n kubeless get svc</span><br><span class="line">NAME      TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">ui        NodePort   10.106.89.123   &lt;none&gt;        3000:30619/TCP   6h</span><br></pre></td></tr></table></figure></p>
+<p>若完成後，可以透過瀏覽器存取 <a href="http://172.20.3.19:30619/" target="_blank" rel="noopener">Kubeless UI</a></p>
+<p><img src="/images/kubeless-installation-images/kubeless-dashboard.png" alt="Kubeless UI"></p>
+<h2 id="寫一個簡單的-Function"><a href="#寫一個簡單的-Function" class="headerlink" title="寫一個簡單的 Function"></a>寫一個簡單的 Function</h2><p>接下來建立一個簡單的 FUnction，以 Python 為範例。</p>
+<p>創建一個<code>test.py</code>，並輸入以下內容：<br><figure class="highlight py"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(event, context)</span>:</span></span><br><span class="line">  <span class="keyword">print</span> event</span><br><span class="line">  <span class="keyword">return</span> event[<span class="string">'data'</span>]</span><br></pre></td></tr></table></figure></p>
+<p>接下來透過 Kubeless 指令建立 Function：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubeless function deploy hello --runtime python2.7 \</span><br><span class="line">    --from-file test.py \</span><br><span class="line">    --handler test.hello</span><br><span class="line">INFO[0000] Deploying function...</span><br><span class="line">INFO[0000] Function hello submitted for deployment</span><br><span class="line">INFO[0000] Check the deployment status executing 'kubeless function ls hello'</span><br></pre></td></tr></table></figure></p>
+<p>可以透過以下指令確認 Function 是否建立：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubeless function ls</span><br><span class="line">NAME 	NAMESPACE	HANDLER   	RUNTIME  	DEPENDENCIES	STATUS</span><br><span class="line">hello	default  	test.hello	python2.7	            	1/1 READY</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> kubectl get functions</span><br><span class="line">NAME      AGE</span><br><span class="line">hello     52s</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> kubectl get po</span><br><span class="line">NAME                     READY     STATUS    RESTARTS   AGE</span><br><span class="line">hello-56d89fcd87-4hlh5   1/1       Running   0          1m</span><br></pre></td></tr></table></figure></p>
+<p>完成後，可以在 Kubeless 上看到剛剛建立的 Function。</p>
+<p><img src="/images/kubeless-installation-images/deploy-function.png" alt="Deploy Function"></p>
+<h2 id="測試-Function"><a href="#測試-Function" class="headerlink" title="測試 Function"></a>測試 Function</h2><p>以下有三種方式可以測試剛剛建立的 Function 是否有作用。</p>
+<h3 id="Kubeless-CLI"><a href="#Kubeless-CLI" class="headerlink" title="Kubeless CLI"></a>Kubeless CLI</h3><p>透過 Kubeless CLI 確認 Function 是否有作用：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubeless function call hello --data 'Hello world!'</span><br><span class="line">Hello world!</span><br></pre></td></tr></table></figure></p>
+<h3 id="Curl"><a href="#Curl" class="headerlink" title="Curl"></a>Curl</h3><p>直接使用<code>Curl</code>指令 <strong>apiserver proxy URL</strong>：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl proxy -p 8080 &amp;</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span> curl --data '&#123;"hello": "world"&#125;' \</span><br><span class="line">    --header "Content-Type:application/json" \</span><br><span class="line">    localhost:8080/api/v1/namespaces/default/services/hello:8080/proxy/</span><br><span class="line">&#123;"hello": "world"&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="Kubeless-UI"><a href="#Kubeless-UI" class="headerlink" title="Kubeless UI"></a>Kubeless UI</h3><p>Kubeless UI 在 Function 旁邊有提供測試。</p>
+<p><img src="/images/kubeless-installation-images/function-test.png" alt="Test Function"></p>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://github.com/kubeless/kubeless" target="_blank" rel="noopener">Kubeless Github</a></li>
+<li><a href="https://kubeless.io/docs/quick-start/" target="_blank" rel="noopener">Kubeless Docs</a></li>
+<li><a href="https://github.com/kubeless/kubeless-ui" target="_blank" rel="noopener">Kubeless UI Github</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2018/05/02/kubeless-installation/" data-id="cjydrq2us0008ws2nso0aoy3y" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2018/05/02/kubeless-installation/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2018/05/02/kubeless-installation/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/05/03/harbor-docker-registry/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    企業等級的 Docker Registry Harbor
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2018/03/02/nvidia-docker-installation/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">NVIDIA Docker v2 安裝</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#事情準備與安裝環境"><span class="toc-number">1.</span> <span class="toc-text">事情準備與安裝環境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-Kubeless"><span class="toc-number">2.</span> <span class="toc-text">安裝 Kubeless</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-Kubeless-UI"><span class="toc-number">3.</span> <span class="toc-text">安裝 Kubeless UI</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#寫一個簡單的-Function"><span class="toc-number">4.</span> <span class="toc-text">寫一個簡單的 Function</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#測試-Function"><span class="toc-number">5.</span> <span class="toc-text">測試 Function</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Kubeless-CLI"><span class="toc-number">5.1.</span> <span class="toc-text">Kubeless CLI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Curl"><span class="toc-number">5.2.</span> <span class="toc-text">Curl</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Kubeless-UI"><span class="toc-number">5.3.</span> <span class="toc-text">Kubeless UI</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">6.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2018/05/02/kubeless-installation/';
+        
+        this.page.identifier = 'kubeless-installation';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

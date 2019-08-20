@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>使用 Jenkins 搭建 iOS 持續整合環境 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="在 iOS 應用程式的開發中必定使用的 XCode 進行開發，且 XCode 內建的測試框架 XCTest 提供了單元測試與 UI 測試的功能。讓開發者能快速且簡易的撰寫單元測試與 UI 測試，以保障程式開發上的品質。而本文希望藉由 Jenkins 持續整合伺服器與 Gitlab 來達到自動化測試的功能，並顯示測試結果至 Jenkins 儀表板中。">
+<meta name="keywords" content="Jenkins,iOS,XCTest,Gitlab,CI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Jenkins 搭建 iOS 持續整合環境">
+<meta property="og:url" content="http://ellis-wu.github.io/2016/04/13/jenkins-intergation-xctest/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="在 iOS 應用程式的開發中必定使用的 XCode 進行開發，且 XCode 內建的測試框架 XCTest 提供了單元測試與 UI 測試的功能。讓開發者能快速且簡易的撰寫單元測試與 UI 測試，以保障程式開發上的品質。而本文希望藉由 Jenkins 持續整合伺服器與 Gitlab 來達到自動化測試的功能，並顯示測試結果至 Jenkins 儀表板中。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/jenkins-intergation-xctest-images/jenkins-xctest-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 Jenkins 搭建 iOS 持續整合環境">
+<meta name="twitter:description" content="在 iOS 應用程式的開發中必定使用的 XCode 進行開發，且 XCode 內建的測試框架 XCTest 提供了單元測試與 UI 測試的功能。讓開發者能快速且簡易的撰寫單元測試與 UI 測試，以保障程式開發上的品質。而本文希望藉由 Jenkins 持續整合伺服器與 Gitlab 來達到自動化測試的功能，並顯示測試結果至 Jenkins 儀表板中。">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/jenkins-intergation-xctest-images/jenkins-xctest-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-jenkins-intergation-xctest" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/jenkins-intergation-xctest-images/jenkins-xctest-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            使用 Jenkins 搭建 iOS 持續整合環境
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2016/04/13/jenkins-intergation-xctest/">
+            <time datetime="2016-04-12T16:00:00.000Z" itemprop="datePublished">2016-04-13</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/DevOps/">DevOps</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/CI/">CI</a>, <a class="tag-link" href="/tags/Gitlab/">Gitlab</a>, <a class="tag-link" href="/tags/Jenkins/">Jenkins</a>, <a class="tag-link" href="/tags/XCTest/">XCTest</a>, <a class="tag-link" href="/tags/iOS/">iOS</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>在 iOS 應用程式的開發中必定使用的 XCode 進行開發，且 XCode 內建的測試框架 XCTest 提供了單元測試與 UI 測試的功能。讓開發者能快速且簡易的撰寫單元測試與 UI 測試，以保障程式開發上的品質。而本文希望藉由 Jenkins 持續整合伺服器與 Gitlab 來達到自動化測試的功能，並顯示測試結果至 Jenkins 儀表板中。</p>
+<a id="more"></a>
+<p>而<code>Apple</code>在 XCode 7 中將 UI 測試加入至 XCTest 之中，為了解決開發者以前為了撰寫 UI 測試難以維護的巨大成本。而 XCTest 的 UI 測試比以往的測試工具更來得簡單方便，特別是在撰寫測試時可以使用<strong>錄製</strong>功能，大大的 UI 測試的門檻。</p>
+<h2 id="持續整合架構"><a href="#持續整合架構" class="headerlink" title="持續整合架構"></a>持續整合架構</h2><p><img src="/images/jenkins-intergation-xctest-images/jenkins-gitlab-xcode-architecture.png" alt="Continuous Integration architecture"></p>
+<p>如上圖所示，為整個系統的流程與架構。當開發者或維運人員開發完成後，將程式碼 commit/push 至 Gitlab 之中，接著 Gitlab 會觸發 Jenkins 的 Job 並開始建構本次測試，當測試完成則會顯示測試結果至 Jenkins 儀表板上。</p>
+<p>而這邊 Jenkins 採用 Master 與 Slave 架構。Jenkins Master 為任一作業系統的機器且僅執行測試任務的分配，這是因為在公司上可能會有許多測試項目，若不採用此方法大家的測試項目可能會資源的搶佔的情形，使得測試延遲無法及時回饋給開發或維運人員，且在未來擴增測試機器也極為方便。而這邊是與 iOS 進行整合測試，所以 Jenkins Slave 使用 Mac OSX 相關設備。</p>
+<h2 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h2><ol>
+<li>準備一台可以執行 XCode 的設備；</li>
+<li>架設一台 Gitlab 亦可以用其他 Git 取代，但可能操作上有些許不同；</li>
+<li>安裝 Jenkins 再任一台機器上。Jenkins 安裝可以參考 <a href="/2016/09/11/jenkins-introduction-and-install/" title="持續整合工具 Jenkins 介紹與安裝">持續整合工具 Jenkins 介紹與安裝</a>。</li>
+</ol>
+<h2 id="持續整合設定與步驟"><a href="#持續整合設定與步驟" class="headerlink" title="持續整合設定與步驟"></a>持續整合設定與步驟</h2><p>以下會一步一步進行教學，使每個人都能輕鬆的來體驗自動化測試的魅力。</p>
+<h3 id="Jenkins-插件安裝"><a href="#Jenkins-插件安裝" class="headerlink" title="Jenkins 插件安裝"></a>Jenkins 插件安裝</h3><p>為了要讓開發或維運人員 commit/push 專案至版本控制伺服器時，能將版本伺服器的專案 clone 至 Jenkins Slave 上，讓專案能進行測試。因此，需要安裝<code>Jenkins gitlab plugin</code>。</p>
+<ol>
+<li>點擊 Jenkins 儀表板右方的 <strong>【管理 Jenkins】</strong>；</li>
+<li>接著點擊 <strong>【管理外掛程式】</strong>，並將標籤切換至 <strong>【可用的】</strong> 並搜尋 <strong>【gitlab plugin】</strong>；</li>
+<li>選擇後開始進行安裝，安裝完成重新啟動 Jenkins。</li>
+</ol>
+<p><img src="/images/jenkins-intergation-xctest-images/install-gitlab-plgun.png" alt="Gitlab plugin install"></p>
+<h3 id="新增-Jenkins-Slave-節點"><a href="#新增-Jenkins-Slave-節點" class="headerlink" title="新增 Jenkins Slave 節點"></a>新增 Jenkins Slave 節點</h3><p>讓 Jenkins 使用 Master 與 Slave 架構，將測試環境與 Jenkins CI Server 分開，好處是在於說：</p>
+<ul>
+<li>Jenkins CI Server 負擔不會這麼重，因為 Jenkins Build Job 都是使用記憶體，當測試一多可能會造成 Memory 不足，造成系統損毀；</li>
+<li>同時間測試項目太多在執行，大家的測試項目會搶佔資源，可能會使得測試項目延遲，無法及時回饋給開發或維運人員；</li>
+<li>若未來要增加測試機器，可以很方便的增加機器，若出現問題只需要針對出現問題的機器進行處理，不用整個環境重用。</li>
+</ul>
+<p>透過以下步驟新增 Jenkins Slave 節點：</p>
+<ol>
+<li>點擊 Jenkins 儀表板右方的 <strong>【管理 Jenkins】</strong>；</li>
+<li>接著點擊  <strong>【管理節點】</strong> 並選擇 <strong>【新增節點】</strong>；</li>
+<li>設定該 <strong>【節點名稱】</strong>，並選擇 <strong>【陽春 Slave】</strong>。</li>
+</ol>
+<p><img src="/images/jenkins-intergation-xctest-images/add-new-node.png" alt="Add Jenkins node"></p>
+<p>以上設定完成後，開始設定該節點的一些詳細資訊，而以下三個項目為 <strong>必要</strong> 的設定，其他項目依照狀況進行設定：</p>
+<ul>
+<li><strong>遠端檔案系統根目錄</strong>：此目錄為 Jenkins 遠端至 Slave 節點後，每次建構 Job 所產生的檔案都會放在此目錄之中，之後建構 Job 後產生的<code>JUnit報表</code>也會產生在此資料目錄底下；</li>
+<li><strong>標籤</strong>：設定標籤為日後建構 Job 時，指定要給該標籤的 Slave 節點建構 Job；</li>
+<li><strong>啟動模式</strong>：Jenkins 已經整合了幾種很方便的啟動模式，一般來講都會使用 SSH 的方式來啟動 Slave 節點，但因為 XCTest 使用 SSH 無法獲得測試結果，因此這邊選擇使用 <strong>【透過 Java Web Start 啟動 Slave 代理程式】</strong>。該方法需要在 Slave 節點上啟動一個由 Java 所撰寫而成的<code>Jenkins slave agent</code>。</li>
+</ul>
+<p>若設定完成後 按下 <strong>【儲存】</strong> 即可。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/set-new-node.png" alt="Set Jenkins node"></p>
+<h3 id="啟動-Slave-代理程式"><a href="#啟動-Slave-代理程式" class="headerlink" title="啟動 Slave 代理程式"></a>啟動 Slave 代理程式</h3><p>當新增 Jenkins Slave 節點設定完成後，會在 Jenkins 儀表板中看到節點狀態為離線(Offline)，這是因為在 Slave 節點上尚未啟動<code>Jenkins slave agent</code>。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/slave-offline.png" alt="Jenkins slave offline"></p>
+<p>此時，可以點進 Slave 節點中可以看到如何啟動<code>Jenkins slave agent</code>，只要依照儀表板上的方法即可啟動。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/start-slave-instruction.png" alt="Start slave instruction"></p>
+<p>在 Slave 節點上<code>Jenkins slave agent</code>若啟動後會跳出 connect 小視窗，這個小視窗請勿關閉，若關閉 Master 與 Slave 連線就中斷了。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/start-slave-agent.png" alt="Start slave agent"></p>
+<h3 id="安裝-ocunit2junit"><a href="#安裝-ocunit2junit" class="headerlink" title="安裝 ocunit2junit"></a>安裝 ocunit2junit</h3><p>因為 Jenkins 看不懂 XCodebuild 後的結果，因此我們要需要透過 OCUnit2JUnit 將 Objective-C (OCUnit) test case 轉換為 Jenkins 能讀取的 JUnit 格式。</p>
+<p>因此，在每台要執行 XCTest 的 Slave 節點上安裝 ocunit2junit。而這邊透過<code>gem</code>來安裝 ocunit2junit：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo gem install ocunit2junit</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><ul>
+<li>XCode 7 的 UI Test 亦可用 ocunit2junit 將結果轉換為 Jenkins 能讀取的 JUnit 格式；</li>
+<li>若想了解更多 OCUnit2JUnit 請參考 <a href="https://github.com/ciryon/OCUnit2JUnit" target="_blank" rel="noopener">這裡</a>。</li>
+</ul>
+</blockquote>
+<h3 id="設定-Jenkins-Job"><a href="#設定-Jenkins-Job" class="headerlink" title="設定 Jenkins Job"></a>設定 Jenkins Job</h3><p>以上都完成後，開始設定 Jenkins Job。</p>
+<ol>
+<li>點擊 Jenkins 儀表板右方的 <strong>【新增作業】</strong>；</li>
+<li>設定 <strong>【作業名稱】</strong>，並選擇 <strong>【建置 Free-Style 軟體專案】</strong>。</li>
+</ol>
+<p><img src="/images/jenkins-intergation-xctest-images/add-new-job.png" alt="Add Jenkins Job"></p>
+<p>以上設定完成後，開始設定該 Job 的詳細資訊，而以下項目為 <strong>必要</strong> 的設定，其他項目依照狀況進行設定：</p>
+<h4 id="限制專案執行節點"><a href="#限制專案執行節點" class="headerlink" title="限制專案執行節點"></a>限制專案執行節點</h4><p>設定這次工作要在哪台 Slave 節點上執行，這裡輸入設定節點時的<strong>標籤</strong>。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/job-node-label.png" alt="Set node label with Jenkins Job"></p>
+<h4 id="設定-Gitlab-Repository"><a href="#設定-Gitlab-Repository" class="headerlink" title="設定 Gitlab Repository"></a>設定 Gitlab Repository</h4><p>由於事先安裝好了<code>gitlab plugin</code>，因此在設定 Jenkins Job 時在 <strong>【原始碼管理】</strong> 中才有 git 的選項。所以當本次 Jenkins Job 執行時會依照設定將專案 clone 下來。設定步驟如下：</p>
+<ol>
+<li>設定 <strong>【Repository URL】</strong> 為自己的 Gitlab URL；</li>
+<li>設定 <strong>【Credentials】</strong>。這邊提供了多種方法，最簡單的方式就是使用 <strong>【Username with password】</strong>，輸入自己的 Gitlab 帳號密碼即可。</li>
+</ol>
+<blockquote class="colorquote info"><p>這邊可以在 Branches to build 切換本次建置的 Branch。</p>
+</blockquote>
+<p><img src="/images/jenkins-intergation-xctest-images/job-gitlab.png" alt="Set Gitlab with Jenkins Job"></p>
+<h4 id="設定建置步驟"><a href="#設定建置步驟" class="headerlink" title="設定建置步驟"></a>設定建置步驟</h4><p>建置步驟提供了四種方式，也可以設定多個建置步驟，這邊選擇使用<code>shell</code>來啟動 Slave 節點上的<code>xcodebuild</code>。<br><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># !/bin/sh</span></span><br><span class="line"><span class="comment"># Test a xcode project using xcodebuild command:</span></span><br><span class="line"><span class="comment"># xcodebuild test -project &lt;projct_name&gt;.xcodeproj -scheme &lt;scheme&gt; -destination "id=&lt;devices_id&gt;" | ocunit2junit</span></span><br><span class="line">xcodebuild <span class="built_in">test</span> -project DevOps_Demo.xcodeproj -scheme DevOps_Demo -destination <span class="string">"id=CBE06FF7-14FD-432E-A6FD-1935E71A5DA8"</span> | ocunit2junit</span><br></pre></td></tr></table></figure></p>
+<p>這邊可能要注意指令中的<code>scheme</code>，若專案沒有<code>scheme</code>則無法進行測試。透過以下步驟列出專案中的<code>scheme</code>：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> xcodebuild -list -project &lt;projct_name&gt;.xcodeproj</span></span><br></pre></td></tr></table></figure></p>
+<p>若專案沒有<code>scheme</code>則必須於 XCode 中開啟<code>scheme shared</code>，開啟如下：<br><img src="/images/jenkins-intergation-xctest-images/scheme-share.png" alt="Enable Scheme"></p>
+<blockquote class="colorquote info"><p>查詢 Devices ID 請參考 <a href="http://nsbogan.com/xcode/2015/02/18/whats-your-destination" target="_blank" rel="noopener">What’s your destination?</a></p>
+</blockquote>
+<h4 id="設定建置後動作"><a href="#設定建置後動作" class="headerlink" title="設定建置後動作"></a>設定建置後動作</h4><p>根據剛剛在建置步驟設定的 shell script，當測試完成後會自動產生 JUnit 報表。因此，在建置後動作要來讀取此 JUnit 報表。而 ocunit2junit 會將報表產生在<code>&lt;Workspace&gt;/test-reports</code>中。</p>
+<blockquote class="colorquote info"><p>Workspace 即為新增節點時設定的<strong>遠端檔案系統根目錄</strong>。</p>
+</blockquote>
+<p>讀取 Junit 報表步驟如下：</p>
+<ol>
+<li>點選 <strong>【發佈 JUnit 測試結果報告】</strong>；</li>
+<li>設定 <strong>【測試報告 XML】</strong> 為<code>test-reports/*.xml</code>。</li>
+</ol>
+<p><img src="/images/jenkins-intergation-xctest-images/job-after-action.png" alt="Set Job after action"></p>
+<h3 id="設定-Web-Hooks"><a href="#設定-Web-Hooks" class="headerlink" title="設定 Web Hooks"></a>設定 Web Hooks</h3><p>設定 Web Hooks 為了要讓開發或維運人員 commit/push 專案時能自動觸發 Jenkins Job 來執行本次的測試，立即測試本次的版本是否有問題出現。</p>
+<p>首先，先取得 Jenkins Job <strong>【馬上建置】</strong> 的網址。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/get-build-url.png" alt="Get Job Build URL"></p>
+<p>接下來到 Gitlab 設定 Web Hooks，步驟如下：</p>
+<ol>
+<li>選擇本次要建構自動測試的專案；</li>
+<li>點擊 <strong>【Settings】</strong> 並點擊 <strong>【Web Hooks】</strong>；</li>
+<li>接著將剛剛複製的 <strong>【馬上建置】</strong> 的網址貼上，並儲存即可。</li>
+</ol>
+<p>之後若觸發了<code>Trigger 條件</code>就會執行設定的 URL，即會開始執行 Jenkins Job。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/setting-web-hooks.png" alt="Gitlab Web Hooks"></p>
+<h2 id="開始測試！"><a href="#開始測試！" class="headerlink" title="開始測試！"></a>開始測試！</h2><p>當以上設定都完成後，就可以開始體驗自動化測試得好處。以後只要 commit/push 就會開始測試，當測試跑完，就可以在 Jenkins 儀表板上看到測試結果。</p>
+<p><img src="/images/jenkins-intergation-xctest-images/job-report.png" alt="Jenkins Job Reports"></p>
+<p><img src="/images/jenkins-intergation-xctest-images/job-report-detail.png" alt="Jenkins Job Reports Detail"></p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2016/04/13/jenkins-intergation-xctest/" data-id="cjydrq2vy002iws2nzemkauit" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2016/04/13/jenkins-intergation-xctest/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2016/04/13/jenkins-intergation-xctest/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2016/04/27/haproxy-installation/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    使用 HAProxy 實現負載平衡
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2015/09/04/test-method-introduction/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">軟體測試方法</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#持續整合架構"><span class="toc-number">1.</span> <span class="toc-text">持續整合架構</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事前準備"><span class="toc-number">2.</span> <span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持續整合設定與步驟"><span class="toc-number">3.</span> <span class="toc-text">持續整合設定與步驟</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Jenkins-插件安裝"><span class="toc-number">3.1.</span> <span class="toc-text">Jenkins 插件安裝</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#新增-Jenkins-Slave-節點"><span class="toc-number">3.2.</span> <span class="toc-text">新增 Jenkins Slave 節點</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#啟動-Slave-代理程式"><span class="toc-number">3.3.</span> <span class="toc-text">啟動 Slave 代理程式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安裝-ocunit2junit"><span class="toc-number">3.4.</span> <span class="toc-text">安裝 ocunit2junit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-Jenkins-Job"><span class="toc-number">3.5.</span> <span class="toc-text">設定 Jenkins Job</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-Web-Hooks"><span class="toc-number">3.6.</span> <span class="toc-text">設定 Web Hooks</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開始測試！"><span class="toc-number">4.</span> <span class="toc-text">開始測試！</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2016/04/13/jenkins-intergation-xctest/';
+        
+        this.page.identifier = 'jenkins-intergation-xctest';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

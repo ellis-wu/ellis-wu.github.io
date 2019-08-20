@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>使用 Kustomize 管理 Kubernetes 配置檔 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Kustomize 是 SIG-CLI 的一個子項目，其目的是為 Kubernetes 提供一種可以重複使用配置檔的管理工具。舉例來說，我們今天開發了一個前端應用 v1 並且撰寫了一個 Deployment、Service 以及 ConfigMap 的 YAML，接著透過kubectl指令將其部署在 Kubernetes 環境之中。但之後此前端應用經過開發與升級至 v2 並需要將其部署至 Kube">
+<meta name="keywords" content="Kustomize">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Kustomize 管理 Kubernetes 配置檔">
+<meta property="og:url" content="http://ellis-wu.github.io/2018/07/26/kustomize-introduction/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="Kustomize 是 SIG-CLI 的一個子項目，其目的是為 Kubernetes 提供一種可以重複使用配置檔的管理工具。舉例來說，我們今天開發了一個前端應用 v1 並且撰寫了一個 Deployment、Service 以及 ConfigMap 的 YAML，接著透過kubectl指令將其部署在 Kubernetes 環境之中。但之後此前端應用經過開發與升級至 v2 並需要將其部署至 Kube">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/kustomize-introduction-images/kustomize-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.798Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 Kustomize 管理 Kubernetes 配置檔">
+<meta name="twitter:description" content="Kustomize 是 SIG-CLI 的一個子項目，其目的是為 Kubernetes 提供一種可以重複使用配置檔的管理工具。舉例來說，我們今天開發了一個前端應用 v1 並且撰寫了一個 Deployment、Service 以及 ConfigMap 的 YAML，接著透過kubectl指令將其部署在 Kubernetes 環境之中。但之後此前端應用經過開發與升級至 v2 並需要將其部署至 Kube">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/kustomize-introduction-images/kustomize-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-kustomize-introduction" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/kustomize-introduction-images/kustomize-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            使用 Kustomize 管理 Kubernetes 配置檔
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/07/26/kustomize-introduction/">
+            <time datetime="2018-07-25T16:00:00.000Z" itemprop="datePublished">2018-07-26</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Kubernetes/">Kubernetes</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Kustomize/">Kustomize</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>Kustomize 是 <a href="https://github.com/kubernetes/community/tree/master/sig-cli" target="_blank" rel="noopener">SIG-CLI</a> 的一個子項目，其目的是為 Kubernetes 提供一種可以重複使用配置檔的管理工具。舉例來說，我們今天開發了一個前端應用 v1 並且撰寫了一個 Deployment、Service 以及 ConfigMap 的 YAML，接著透過<code>kubectl</code>指令將其部署在 Kubernetes 環境之中。但之後此前端應用經過開發與升級至 v2 並需要將其部署至 Kubernetes 環境，但其中 Kubernetes 的配置檔有些參數與 v1 略有不同。此時，我們通常會將 v1 所撰寫的 YAML 複製一份並修改部分內容，再透過<code>kubectl</code>部署到 Kubernetes 環境之中。但這樣的情況下我們同時保存兩份 YAML 且其他人也無法輕易地看出兩份 YAML 之間的配置有哪些不同。而 Kustomize 就可以很好的幫我們解決這些問題。</p>
+<a id="more"></a>
+<p>因此，本文將使用 Kustomize 官方提供的範例，帶著大家快速了解 Kustomize 的好處與便利性。</p>
+<h2 id="Kustomize-安裝"><a href="#Kustomize-安裝" class="headerlink" title="Kustomize 安裝"></a>Kustomize 安裝</h2><p>首先，Kustomize 的安裝十分簡單，我們這邊使用官方提供的 binary 檔案進行安裝。而根據作業系統的不同 Kustomize 提供三種 binary 檔 (<code>linux</code>、<code>darwin</code> 以及 <code>windows</code>)，請使用者依照自己的作業系統自行將下面的<code>opsys</code>參數更換：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> OP_SYSTEM=linux</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | \</span></span><br><span class="line">  grep browser_download | \</span><br><span class="line">  grep $&#123;OP_SYSTEM&#125; | \</span><br><span class="line">  cut -d '"' -f 4 | \</span><br><span class="line">  xargs curl -O -L</span><br><span class="line"><span class="meta">$</span><span class="bash"> mv kustomize_*_<span class="variable">$&#123;OP_SYSTEM&#125;</span>_amd64 /usr/<span class="built_in">local</span>/bin/kustomize</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> chmod u+x /usr/<span class="built_in">local</span>/bin/kustomize</span></span><br></pre></td></tr></table></figure>
+<h2 id="Kustomize-該如何使用"><a href="#Kustomize-該如何使用" class="headerlink" title="Kustomize 該如何使用"></a>Kustomize 該如何使用</h2><p>Kustomize 在建立一個 Kubernetes 應用程式時，它的資料夾架構類似下面這樣：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">~/someApp</span><br><span class="line">├── base</span><br><span class="line">│   ├── deployment.yaml</span><br><span class="line">│   ├── kustomization.yaml</span><br><span class="line">│   └── service.yaml</span><br><span class="line">└── overlays</span><br><span class="line">    ├── development</span><br><span class="line">    │   ├── cpu_count.yaml</span><br><span class="line">    │   ├── kustomization.yaml</span><br><span class="line">    │   └── replica_count.yaml</span><br><span class="line">    └── production</span><br><span class="line">        ├── cpu_count.yaml</span><br><span class="line">        ├── kustomization.yaml</span><br><span class="line">        └── replica_count.yaml</span><br></pre></td></tr></table></figure></p>
+<p>Kustomize 需要先針對該應用建立一個基礎的 Kubernetes 配置檔，這裡稱之為 <em><strong>Base</strong></em>。之後再以 Overlay 來區分每個不同版本的配置。而 Overlay 中的 <em><strong>deployment</strong></em> 與 <em><strong>production</strong></em> 僅需要撰寫與 <em><strong>Base</strong></em> 之間有差異的設定 (例如：Image 版本不同、Replica 數量不同或資源分配不同…等差異) 以及<code>kustomize.yaml</code>描述該版本與 <em><strong>Base</strong></em> 之間的差異。之後透過 Kustomize 就可以分別 print 出 <em><strong>development</strong></em> 與 <em><strong>production</strong></em> 的 Kubernetes 配置檔。</p>
+<h2 id="國際範例-Helloworld"><a href="#國際範例-Helloworld" class="headerlink" title="國際範例 Helloworld"></a>國際範例 Helloworld</h2><p>當 Kustomize 安裝好了後，我們可以執行一個 <a href="https://github.com/kubernetes-sigs/kustomize/tree/master/examples/helloWorld" target="_blank" rel="noopener">Helloworld 範例</a>。此範例由 Kustomize 官方提供且是一個由 Go 語言所撰寫的 web server。這邊希望藉由此範例能帶領大家能快速體驗 Kustomize 的好處。</p>
+<p>此 Helloworld 範例透過讀取環境變數<code>ALT_GREETING</code>的資訊來呈現在 web server 上，並在啟動 web server 時透過<code>enableRiskyFeature</code>參數來改變 web server 上呈現的字體是否為斜體。</p>
+<blockquote class="colorquote info"><p>若想了解 HelloWorld 範例的程式碼，請參考 <a href="https://github.com/monopole/hello" target="_blank" rel="noopener">這裡</a>。</p>
+</blockquote>
+<h3 id="建立-Base"><a href="#建立-Base" class="headerlink" title="建立 Base"></a>建立 Base</h3><p>當我們稍微了解 Kustomize 與 HelloWorld 範例後，我們需要先建立 Base 資料夾並準備 HelloWorld 範例所需的 YAML 檔。這邊透過 Git 取得範例的 YAML 檔：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir -p kustomize/helloworld-example &amp;&amp; <span class="built_in">cd</span> kustomize/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> DEMO_HOME=$(<span class="built_in">pwd</span>)/helloworld-example</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> BASE=<span class="variable">$DEMO_HOME</span>/base</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mkdir -p <span class="variable">$BASE</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> curl -s -o <span class="string">"<span class="variable">$BASE</span>/#1.yaml"</span> \</span></span><br><span class="line">  "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/examples/helloWorld/&#123;configMap,deployment,kustomization,service&#125;.yaml"</span><br><span class="line"><span class="meta">$</span><span class="bash"> tree <span class="variable">$DEMO_HOME</span></span></span><br><span class="line">/root/kustomize/helloworld-example</span><br><span class="line">└── base</span><br><span class="line">    ├── configMap.yaml</span><br><span class="line">    ├── deployment.yaml</span><br><span class="line">    ├── kustomization.yaml</span><br><span class="line">    └── service.yaml</span><br><span class="line"></span><br><span class="line">1 directories, 4 files</span><br></pre></td></tr></table></figure></p>
+<p>接下來，我們可以使用<code>kustomize build</code> 指令來產生出 Base 的 Kubernetes 配置檔：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kustomize build <span class="variable">$BASE</span></span></span><br></pre></td></tr></table></figure></p>
+<p>可以使用以下方式來將 Base 部署於 Kubernetes 之中：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kustomize build <span class="variable">$BASE</span> | kubectl apply -f -</span></span><br><span class="line">configmap "the-map" created</span><br><span class="line">service "the-service" created</span><br><span class="line">deployment.apps "the-deployment" created</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> kubectl get po,svc,configmap</span></span><br><span class="line">NAME                                 READY     STATUS    RESTARTS   AGE</span><br><span class="line">pod/the-deployment-f9f46f89f-j5hcs   1/1       Running   0          17s</span><br><span class="line">pod/the-deployment-f9f46f89f-q7c7w   1/1       Running   0          17s</span><br><span class="line">pod/the-deployment-f9f46f89f-znjrn   1/1       Running   0          17s</span><br><span class="line"></span><br><span class="line">NAME                         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">service/kubernetes           ClusterIP      10.96.0.1        &lt;none&gt;        443/TCP          17d</span><br><span class="line">service/the-service          LoadBalancer   10.105.224.225   &lt;pending&gt;     8666:30325/TCP   17s</span><br><span class="line"></span><br><span class="line">NAME                DATA      AGE</span><br><span class="line">configmap/the-map   2         17s</span><br></pre></td></tr></table></figure></p>
+<p>可以透過瀏覽器查看 Helloworld 範例的 <a href="http://172.20.3.57:30325/" target="_blank" rel="noopener">web server</a> 或者使用<code>curl</code>來確認：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> curl 172.20.3.57:30325</span></span><br><span class="line">&lt;html&gt;&lt;body&gt;</span><br><span class="line">Version 1 : Good Morning!</span><br><span class="line">&lt;/body&gt;&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/kustomize-introduction-images/helloworld-base.png" alt="Helloworld Base Example"></p>
+<p>可以看到<code>ConfigMap</code>中定義了兩個參數並在<code>Deployment</code>中來讀取這兩個參數。所以在 web server 上會呈現 Good Morning 字樣且字體為正常的字體。而<code>kustomize.yaml</code>中宣告此應用程式的<code>commonLabels</code>為<code>app: hello</code>。因此，kustomize 會將每個 Kubernetes 配置檔中加入一個<code>app: hello</code>的 label。再來定義此應用程式是由為<code>deployment.yaml</code>、<code>service.yaml</code>與<code>configMap.yaml</code>三個檔案所組成。</p>
+<h3 id="建立-Overlay"><a href="#建立-Overlay" class="headerlink" title="建立 Overlay"></a>建立 Overlay</h3><p>上面測試完成後，我們可以開始建立 Overlay 的資料夾結構，這邊為了看出 kustomize 的好處，我們將在 Overlay 底下建立<code>staging</code>與<code>production</code>兩個資料夾。Staging 將改變 configMap 中的參數；而 production 將改變 deployment 的 replicas 數量。</p>
+<p>首先，建立 Overlay 資料夾：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> OVERLAYS=<span class="variable">$DEMO_HOME</span>/overlays</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mkdir -p <span class="variable">$OVERLAYS</span>/staging</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mkdir -p <span class="variable">$OVERLAYS</span>/production</span></span><br></pre></td></tr></table></figure></p>
+<p>接著準備 Staging 的<code>kustomize.yaml</code>：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat &lt;&lt;EOF &gt; <span class="variable">$OVERLAYS</span>/staging/kustomization.yaml</span></span><br><span class="line">namePrefix: staging-</span><br><span class="line">commonLabels:</span><br><span class="line">  variant: staging</span><br><span class="line">  org: acmeCorporation</span><br><span class="line">commonAnnotations:</span><br><span class="line">  note: Hello, I am staging!</span><br><span class="line">bases:</span><br><span class="line">- ../../base</span><br><span class="line">patches:</span><br><span class="line">- map.yaml</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure></p>
+<p>在此範例中我們定義了幾個東西：</p>
+<ul>
+<li><strong>Kubernetes 應用程式的名稱</strong>：以往我們的應用程式 v1 在跑時，想要測試 v2 版本，最簡單的方式就是複製 v1 版本的配置檔，並將其修改內容更改之後，再來去修改每個檔案中的名稱，否則重複名稱 Kubernetes 會無法建立。而 Kustomize 透過<code>namePrefix</code>參數為此應用程式在 Kubernetes 之中的名稱加個前綴字<code>staging-</code>，所以之後透過<code>kubectl</code>看到其名稱會變成<code>staging-xxxxxx</code>；</li>
+<li><strong>新增 label</strong>：這個配置不是必須的，但可以看到 Kustomize 可以這樣為此 Staging 的應用程式新增兩個 label；</li>
+<li><strong>新增 Annotations</strong>：這個配置也不是必須的，但可以看到 Kustomize 可以這樣為此 Staging 的應用程式新增 Annotations；</li>
+<li><strong>定義 Base</strong>：定義此應用程式的 Base；</li>
+<li><strong>定義 Patch</strong>：定義 Overlay 與 Base 之間需要 patches 的檔案。</li>
+</ul>
+<p>接著，準備 Staging 需要 patch 的檔案：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat &lt;&lt;EOF &gt; <span class="variable">$OVERLAYS</span>/staging/map.yaml</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: the-map</span><br><span class="line">data:</span><br><span class="line">  altGreeting: "Have a pineapple!"</span><br><span class="line">  enableRisky: "true"</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure></p>
+<p>我們再來準備 Production 應用程式的設定：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat &lt;&lt;EOF &gt; <span class="variable">$OVERLAYS</span>/production/kustomization.yaml</span></span><br><span class="line">namePrefix: production-</span><br><span class="line">commonLabels:</span><br><span class="line">  variant: production</span><br><span class="line">  org: acmeCorporation</span><br><span class="line">commonAnnotations:</span><br><span class="line">  note: Hello, I am production!</span><br><span class="line">bases:</span><br><span class="line">- ../../base</span><br><span class="line">patches:</span><br><span class="line">- deployment.yaml</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure></p>
+<p>我們改變 Deployment 的 replicas 數量：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat &lt;&lt;EOF &gt; <span class="variable">$OVERLAYS</span>/production/deployment.yaml</span></span><br><span class="line">apiVersion: apps/v1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  name: the-deployment</span><br><span class="line">spec:</span><br><span class="line">  replicas: 5</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure></p>
+<p>以上都完成後，其資料夾結構如下：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tree $DEMO_HOME</span><br><span class="line">/root/kustomize/helloworld-example</span><br><span class="line">├── base</span><br><span class="line">│   ├── configMap.yaml</span><br><span class="line">│   ├── deployment.yaml</span><br><span class="line">│   ├── kustomization.yaml</span><br><span class="line">│   └── service.yaml</span><br><span class="line">└── overlays</span><br><span class="line">    ├── production</span><br><span class="line">    │   ├── deployment.yaml</span><br><span class="line">    │   └── kustomization.yaml</span><br><span class="line">    └── staging</span><br><span class="line">        ├── kustomization.yaml</span><br><span class="line">        └── map.yaml</span><br><span class="line"></span><br><span class="line">4 directories, 8 files</span><br></pre></td></tr></table></figure></p>
+<p>接下來，我們可以部署 Staging 的應用程式：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kustomize build <span class="variable">$OVERLAYS</span>/staging | kubectl apply -f -</span></span><br><span class="line">configmap "staging-the-map" created</span><br><span class="line">service "staging-the-service" created</span><br><span class="line">deployment.apps "staging-the-deployment" created</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> kubectl get po,svc,configmap</span></span><br><span class="line">NAME                                             READY     STATUS    RESTARTS   AGE</span><br><span class="line">pod/staging-the-deployment-64cd4f746f-5rcqf      1/1       Running   0          3m</span><br><span class="line">pod/staging-the-deployment-64cd4f746f-s2b2d      1/1       Running   0          3m</span><br><span class="line">pod/staging-the-deployment-64cd4f746f-wqtxh      1/1       Running   0          3m</span><br><span class="line">pod/the-deployment-f9f46f89f-j5hcs               1/1       Running   0          8m</span><br><span class="line">pod/the-deployment-f9f46f89f-q7c7w               1/1       Running   0          8m</span><br><span class="line">pod/the-deployment-f9f46f89f-znjrn               1/1       Running   0          8m</span><br><span class="line"></span><br><span class="line">NAME                             TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">service/kubernetes               ClusterIP      10.96.0.1        &lt;none&gt;        443/TCP          17d</span><br><span class="line">service/staging-the-service      LoadBalancer   10.102.157.42    &lt;pending&gt;     8666:30630/TCP   3m</span><br><span class="line">service/the-service              LoadBalancer   10.105.224.225   &lt;pending&gt;     8666:30325/TCP   8m</span><br><span class="line"></span><br><span class="line">NAME                           DATA      AGE</span><br><span class="line">configmap/staging-the-map      2         3m</span><br><span class="line">configmap/the-map              2         8m</span><br></pre></td></tr></table></figure></p>
+<p>確認部署完畢後，我們一樣可以透過瀏覽器查看 Staging 的 <a href="http://172.20.3.57:30630/" target="_blank" rel="noopener">web server</a> 或者使用<code>curl</code>來確認 web server 上的資訊以及字體的改變：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> curl 172.20.3.57:30630</span></span><br><span class="line">&lt;html&gt;&lt;body&gt;</span><br><span class="line">Version 1 : &lt;em&gt;Have a pineapple!&lt;/em&gt;</span><br><span class="line">&lt;/body&gt;&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/kustomize-introduction-images/helloworld-staging.png" alt="Helloworld Staging Example"></p>
+<p>接下來，我們再來部署 Production 來看看結果：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kustomize build <span class="variable">$OVERLAYS</span>/production | kubectl apply -f -</span></span><br><span class="line">configmap "production-the-map" created</span><br><span class="line">service "production-the-service" created</span><br><span class="line">deployment.apps "production-the-deployment" created</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> kubectl get po,svc,configmap</span></span><br><span class="line">NAME                                             READY     STATUS    RESTARTS   AGE</span><br><span class="line">pod/production-the-deployment-54748f86c5-4ltf7   1/1       Running   0          1m</span><br><span class="line">pod/production-the-deployment-54748f86c5-fjcfd   1/1       Running   0          1m</span><br><span class="line">pod/production-the-deployment-54748f86c5-fzprs   1/1       Running   0          1m</span><br><span class="line">pod/production-the-deployment-54748f86c5-jqv88   1/1       Running   0          1m</span><br><span class="line">pod/production-the-deployment-54748f86c5-k4tp5   1/1       Running   0          1m</span><br><span class="line">pod/staging-the-deployment-64cd4f746f-llrb7      1/1       Running   0          8m</span><br><span class="line">pod/staging-the-deployment-64cd4f746f-qxt2h      1/1       Running   0          8m</span><br><span class="line">pod/staging-the-deployment-64cd4f746f-v687r      1/1       Running   0          8m</span><br><span class="line">pod/the-deployment-f9f46f89f-j5hcs               1/1       Running   0          13m</span><br><span class="line">pod/the-deployment-f9f46f89f-q7c7w               1/1       Running   0          13m</span><br><span class="line">pod/the-deployment-f9f46f89f-znjrn               1/1       Running   0          13m</span><br><span class="line"></span><br><span class="line">NAME                             TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">service/kubernetes               ClusterIP      10.96.0.1        &lt;none&gt;        443/TCP          17d</span><br><span class="line">service/production-the-service   LoadBalancer   10.110.250.85    &lt;pending&gt;     8666:30267/TCP   1m</span><br><span class="line">service/staging-the-service      LoadBalancer   10.102.157.42    &lt;pending&gt;     8666:30630/TCP   8m</span><br><span class="line">service/the-service              LoadBalancer   10.105.224.225   &lt;pending&gt;     8666:30325/TCP   13m</span><br><span class="line"></span><br><span class="line">NAME                           DATA      AGE</span><br><span class="line">configmap/production-the-map   2         1m</span><br><span class="line">configmap/staging-the-map      2         8m</span><br><span class="line">configmap/the-map              2         13m</span><br></pre></td></tr></table></figure></p>
+<p>因為 Production 與 Base 之間我們只改變 Deployment 的 replicas 數量，所以可以透過<code>kubectl</code>指令看到 Production 的 pod 數量為五個。</p>
+<blockquote class="colorquote info"><p>以上為官方提供的其中一個 Example，而其他 Example 請參考 <a href="https://github.com/kubernetes-sigs/kustomize/tree/master/examples" target="_blank" rel="noopener">這裡</a>。</p>
+</blockquote>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>使用 Kustomize 來作為 Kubernetes 配置檔的管理看起來不錯，但對使用者來說又要額外學習如何使用 Kustomize。但其帶來的好處在於，可以快速知道 Staging 與 Production 兩個版本上做了哪些修改，管理上帶來極大的好處。而目前 Kustomize 為 SIG 的子專案，未來的發展與後續維運方面還是個未知數，但它並不依賴於 Kubernetes 所以還是可以嘗試看看。</p>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://github.com/kubernetes-sigs/kustomize" target="_blank" rel="noopener">Kustomize Github</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/38424955" target="_blank" rel="noopener">Kuberentes Kustomize 初體驗</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2018/07/26/kustomize-introduction/" data-id="cjydrq2w1002jws2nyf95p0el" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2018/07/26/kustomize-introduction/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2018/07/26/kustomize-introduction/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2019/07/15/avs-device-sdk-installation/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2018/07/12/harbor-on-kubernetes/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">使用 Helm 在 Kubernetes 上部署 Harbor</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kustomize-安裝"><span class="toc-number">1.</span> <span class="toc-text">Kustomize 安裝</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kustomize-該如何使用"><span class="toc-number">2.</span> <span class="toc-text">Kustomize 該如何使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#國際範例-Helloworld"><span class="toc-number">3.</span> <span class="toc-text">國際範例 Helloworld</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#建立-Base"><span class="toc-number">3.1.</span> <span class="toc-text">建立 Base</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立-Overlay"><span class="toc-number">3.2.</span> <span class="toc-text">建立 Overlay</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#結論"><span class="toc-number">4.</span> <span class="toc-text">結論</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">5.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2018/07/26/kustomize-introduction/';
+        
+        this.page.identifier = 'kustomize-introduction';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

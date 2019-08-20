@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>CEPH 資料分散：CRUSH 演算法與一致性 Hash | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="本篇文章為翻譯文章，原文資訊如下：  原文網址：Ceph剖析：数据分布之CRUSH算法与一致性Hash  原文作者：吳香偉  將資料分散儲存是分散式儲存的一個重要議題，而將資料分散的演算法至少要考慮以下三個因素：  故障與隔離：相同資料的不同副本應分散在不同的故障區域，以降低資料損壞的風險。 負載平衡：資料要能夠平均分散在硬碟容量不同的儲存節點，避免部分節點硬碟空間剩餘過多；而部分節點硬碟空間不足">
+<meta name="keywords" content="Ceph,CRUSH">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CEPH 資料分散：CRUSH 演算法與一致性 Hash">
+<meta property="og:url" content="http://ellis-wu.github.io/2016/10/07/ceph-crush-introduction/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="本篇文章為翻譯文章，原文資訊如下：  原文網址：Ceph剖析：数据分布之CRUSH算法与一致性Hash  原文作者：吳香偉  將資料分散儲存是分散式儲存的一個重要議題，而將資料分散的演算法至少要考慮以下三個因素：  故障與隔離：相同資料的不同副本應分散在不同的故障區域，以降低資料損壞的風險。 負載平衡：資料要能夠平均分散在硬碟容量不同的儲存節點，避免部分節點硬碟空間剩餘過多；而部分節點硬碟空間不足">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/ceph-crush-introduction-images/ceph-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.796Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CEPH 資料分散：CRUSH 演算法與一致性 Hash">
+<meta name="twitter:description" content="本篇文章為翻譯文章，原文資訊如下：  原文網址：Ceph剖析：数据分布之CRUSH算法与一致性Hash  原文作者：吳香偉  將資料分散儲存是分散式儲存的一個重要議題，而將資料分散的演算法至少要考慮以下三個因素：  故障與隔離：相同資料的不同副本應分散在不同的故障區域，以降低資料損壞的風險。 負載平衡：資料要能夠平均分散在硬碟容量不同的儲存節點，避免部分節點硬碟空間剩餘過多；而部分節點硬碟空間不足">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/ceph-crush-introduction-images/ceph-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-ceph-crush-introduction" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/ceph-crush-introduction-images/ceph-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            CEPH 資料分散：CRUSH 演算法與一致性 Hash
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2016/10/07/ceph-crush-introduction/">
+            <time datetime="2016-10-06T16:00:00.000Z" itemprop="datePublished">2016-10-07</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Ceph/">Ceph</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/CRUSH/">CRUSH</a>, <a class="tag-link" href="/tags/Ceph/">Ceph</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>本篇文章為翻譯文章，原文資訊如下：</p>
+<blockquote>
+<p>原文網址：<a href="http://www.cnblogs.com/shanno/p/3958298.html" target="_blank" rel="noopener">Ceph剖析：数据分布之CRUSH算法与一致性Hash</a><br>  原文作者：<a href="http://www.cnblogs.com/shanno" target="_blank" rel="noopener">吳香偉</a></p>
+</blockquote>
+<p>將資料分散儲存是分散式儲存的一個重要議題，而將資料分散的演算法至少要考慮以下三個因素：</p>
+<ol>
+<li><strong>故障與隔離</strong>：相同資料的不同副本應分散在不同的故障區域，以降低資料損壞的風險。</li>
+<li><strong>負載平衡</strong>：資料要能夠平均分散在硬碟容量不同的儲存節點，避免部分節點硬碟空間剩餘過多；而部分節點硬碟空間不足甚至超載，進而影響系統效能。</li>
+<li><strong>新增/刪除節點時</strong>，所造成的資料搬移：當刪除節點時，最好的資料搬移是只有將離線節點上的資料搬移至其它節點，而其餘節點的資料不會發生搬移。</li>
+</ol>
+<p>物件儲存(Object Store)中的<code>一致性 Hash</code>與 Ceph 的<code>CRUSH</code>是比較常見的資料分散演算法。而在 Amazon 的 Dynamo 的 key-value 儲存系統中使用了<code>一致性 Hash</code>，並且對其做了很多優化；OpenStack 的 Swift 物件儲存系統亦使用了<code>一致性 Hash</code>。</p>
+<a id="more"></a>
+<h2 id="一致性-Hash"><a href="#一致性-Hash" class="headerlink" title="一致性 Hash"></a>一致性 Hash</h2><p>假設資料為 <em>x</em>，儲存節點數量為 <em>N</em>。將資料分散至儲存節點中，最簡單的方法是：</p>
+<ol>
+<li>計算資料 <em>x</em> 的 hash 值；</li>
+<li>將 <em>hash(x)</em> % <em>N</em>，其結果即為將資料 <em>x</em> 儲存至節點 <em>N</em>。</li>
+</ol>
+<p>而資料經過 Hash 的目的是為了可以讓資料平均分散在 <em>N</em> 個節點中，但這種做法有一個嚴重的問題，就是當加入或刪除節點時，幾乎所有資料都會受到影響，需要重新分配，因此，其資料的搬移量是非常大的。</p>
+<p><img src="/images/ceph-crush-introduction-images/hash1.png" alt="一致性 Hash 區段"></p>
+<p>如上圖所示，<code>一致性 Hash</code>將資料和儲存節點映射到同個 Hash 空間。Hash 環中的 3 個儲存節點把 Hash 空間分為 3 個區段，每個儲存節點負責一個區段上的資料，例如：區段 [N2, N0] 上的資料儲存在節點<code>N0</code>。</p>
+<p><code>一致性 Hash</code>能夠很好的控制節點的新增與刪除所導致的資料搬移的搬移量。</p>
+<ul>
+<li><strong>刪除節點</strong><br>如上圖(b)所示，當節點<code>N0</code>刪除時，原本由它負責的 [N2, N0] 區段與 [N0, N1] 區段合併成為 [N2, N1] 區段，並且都由節點<code>N1</code>負責。也就是說本來儲存在節點<code>N0</code>上的資料都搬移至節點<code>N1</code>，而原本儲存在<code>N1</code>與<code>N2</code>節點上的資料不受影響。</li>
+<li><strong>新增節點</strong><br>如上圖(c)所示，當節點<code>N3</code>加入時，原本 [N2, N0] 區段分為 [N3, N0] 與 [N2, N3] 兩個區段，其中 [N3, N0] 區段上的資料搬移到新加入的節點<code>N3</code>。</li>
+</ul>
+<h3 id="虛擬節點"><a href="#虛擬節點" class="headerlink" title="虛擬節點"></a>虛擬節點</h3><p><code>一致性 Hash</code>的一個問題是，儲存節點不能將 Hash 空間平均的劃分。如下圖(a)所示，區段 [N2, N0] 的大小幾乎是其他區段大小之和，這容易讓負責該區段的節點<code>N0</code>負載過重。假設 3 個節點的硬碟容器相等，那麼當節點<code>N0</code>的硬碟容量已經寫滿資料時，其他兩個節點上的硬碟還有很大的空間，但此時系統已經無法繼續向區段 [N2, N0] 寫入資料，而造成資源的浪費。</p>
+<p><img src="/images/ceph-crush-introduction-images/hash2.png" alt="一致性 Hash 分配不均"></p>
+<p>虛擬節點是相對於實體節點，虛擬節點負責的區段上的資料，最終儲存到其對應的實體節點。在<code>一致性 Hash</code>中引入虛擬節點可以把 Hash 空間劃分成更多區段，讓資料能更平均的分散在儲存節點上。如上圖(b)所示，紅色的節點代表虛擬節點，<em>Ni_0</em> 代表該虛擬節點對應於實體節點 <em>i</em> 的第 0 個虛擬節點。增加虛擬節點後：</p>
+<ul>
+<li>實體節點<code>N0</code>負責 [N0, N1_0] 與 [N2_0, N1_0] 兩個區段；</li>
+<li>實體節點<code>N1</code>負責 [N0_0, N1] 與 [N0, N0_0] 兩個區段；</li>
+<li>實體節點<code>N2</code>負責 [N2, N1] 與 [N2_0, N2] 兩個區段。</li>
+</ul>
+<p>因此，三個物理節點負責的資量量趨於平均。</p>
+<blockquote class="colorquote info"><p>而在實際應用中，可以依據實體節點的硬碟大小來確定其對應的虛擬節點數量。虛擬節點數量越多，節點負責的資料區段也越大。</p>
+</blockquote>
+<h3 id="區段與區段位置"><a href="#區段與區段位置" class="headerlink" title="區段與區段位置"></a>區段與區段位置</h3><p>先前提到，當節點加入或刪除時，區段會進行分裂或合併，這不對新寫入的資料構成影響，但對於已經寫入到硬碟的資料需要重新計算 Hash 值以確定它是否需要搬移到其他節點，因為需要查詢整個硬碟中的所有資料，這個計算過程非常耗時。</p>
+<p>如下圖(a)所示，區段是由落在 Hash 還上的虛擬節點 <em>Ti</em> 來劃分的，並且區段位置(儲存區段資料的節點)也同虛擬節點相關，及儲存到其順時針方向的第 1 個虛擬節點。</p>
+<p><img src="/images/ceph-crush-introduction-images/hash3.png" alt="Dynamo Hash"></p>
+<p>在 Dynamo 的論文中提出了分離區段和區段位置的方法來解決這個問題。該方法將 Hash 空間分為固定的若干區段，虛擬節點不再用於劃分區段，而用來確定區段的儲存位置。如上圖(b)所示，將 Hash 空間劃分成 <strong>[A, B]</strong>、<strong>[B, C]</strong>、<strong>[C, D]</strong>、<strong>[D, A]</strong> 四個固定的區段。虛擬節點用於確定區段位置，例如：<em>T1</em> 負責區段 <strong>[B, C]</strong>；<em>T2</em> 負責區段 <strong>[C, D]</strong>；<em>T0</em> 負責區段 <strong>[D, A]</strong> 和 <strong>[A, B]</strong> 兩個區段。由於區段固定，因此搬移資料時，可以很容易知道哪些資料需要搬移；哪些資料不需要搬移。</p>
+<p>上圖(b)中虛擬節點<code>T0</code>負責了 <strong>[D, A]</strong> 和 <strong>[A, B]</strong> 兩個區段的資料，這是由於區段數量與虛擬節點數量不同導致的。而為了讓區段分佈得更加平均，Dynamo 提出了區段數量和虛擬節點數量相等的方法，這樣每個虛擬節點負責一個區段，在實體節點的硬碟容量相同並且虛擬節點數量相同的情況下，每個實體節點負責的區段大小是完全相同的，進而達到最佳的資料分散。</p>
+<h2 id="CRUSH-演算法"><a href="#CRUSH-演算法" class="headerlink" title="CRUSH 演算法"></a>CRUSH 演算法</h2><p>Ceph 分散資料的過程：</p>
+<ol>
+<li>計算資料 <em>x</em> 的 hash 值；</li>
+<li>將 <em>hash(x)</em> % <em>PG數量</em>，其結果即為將資料 <em>x</em> 儲存至的 <em>pg</em> 編號；</li>
+<li>然後，透過<code>CRUSH</code>將 PG 映射到一組 OSD 中；</li>
+<li>最後，把資料 <em>x</em> 儲存至 PG 對應的 OSD 中。</li>
+</ol>
+<p>這個過程中包含了兩次映射，第一次是資料 <em>x</em> 到 PG 的映射，若把 pg 當作儲存節點，那麼這雨先前提到的一般 Hash 演算法一樣，但 <strong>pg 是抽象的儲存節點</strong>，它不會隨著實體節點的新增或刪除而增加或減少，因此資料到 pg 的映射是穩定的。</p>
+<p><img src="/images/ceph-crush-introduction-images/hash4.png" alt="Dynamo Hash 與 CRUSH 差異"></p>
+<p>在這個過程中，PG 擁有兩個作用：</p>
+<ol>
+<li><strong>劃分資料區段</strong>：每個 PG 管理的資料區段大小相同，因此資料能更平均的分散至 PG 上。</li>
+<li><strong>充當 Dynamo 中 Token 的角色，即決定區段位置</strong>：實際上，這和 Dynamo 中固定區段數量以及維持區段數量和虛擬機節點數量相等的原則是一樣的概念。</li>
+</ol>
+<p>在沒有多副本的情況下，Dynamo 中區段的資料直接儲存到 Token，而每個 Token 對應唯一的一個實體儲存節點。而在多副本(假設副本數為 <em>N</em>)的情況下，區段的資料會儲存至連續的 <em>N</em> 個 Token 之中，而這衍生了一個新的問題：因為副本必須保持在不同的實體節點上，但這組 Token 中存在兩個或多個 Token 對應到同一個實體儲存節點，那勢必要跳過這樣的節點。而 Dynamo 使用 Preference 列表來紀錄每個區段對應的實體節點，且論文中沒有詳述區段的 Preference 列表如何選擇實體節點與選擇實體節點時，該如何隔離故障區域等問題。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">(osd0, osd1, osd2 … osdn) = CRUSH(x)</span><br></pre></td></tr></table></figure>
+<p>Ceph 的 PG 擔任起 Dynamo 中 Token、固定區段與 Preference 列表的角色，解決了同樣的問題。PG 的 Acting 集合等同於 Preference 列表，<code>CRUSH</code>解決了 Dynamo 論文中未提及的問題。</p>
+<h3 id="OSD-階層架構和權重大小"><a href="#OSD-階層架構和權重大小" class="headerlink" title="OSD 階層架構和權重大小"></a>OSD 階層架構和權重大小</h3><p><code>CRUSH</code>的目的是：</p>
+<blockquote>
+<p>為給定的 PG(即區段)分配一組儲存資料的 OSD 節點</p>
+</blockquote>
+<p>而選擇 OSD 節點的過程，要考慮以下幾個因素：</p>
+<ol>
+<li><strong>PG 在 OSD 間平均分散</strong>：假設每個 OSD 的硬碟大小皆相同，那麼我們希望 PG 在每個 OSD 節點上是平均分散的，也就是說每個 OSD 節點包含相同數量的 PG。假如節點的硬碟容量不等，那麼硬碟容量大的節點能夠處理更多數量的 PG。</li>
+<li><strong>PG 的 OSD 分佈在不同的故障域</strong>：因為 PG 的 OSD 列表用於保存資料在不同的副本，副本分佈在不同的 OSD 中可以降低資料損壞的風險。</li>
+</ol>
+<p><img src="/images/ceph-crush-introduction-images/ceph-architecture.png" alt="Ceph Architecture"></p>
+<p>Ceph 使用樹型階層架構描述 OS 的空間位置與權重大小。如上圖所示，階層架構描述了 OSD 所在主機、主機所在機架與機架所在的機房等空間位置。這些空間位置隱含了故障區域，例如：使用不同電源的不同機架屬於不同故障區域。<code>CRUSH</code>能夠依據一定的規則將副本放置在不同的故障區域。</p>
+<p>OSD 節點在階層架構中也被稱為<code>Device</code>，它位於階層架構的<strong>葉節點</strong>，所有非葉節點的稱為<code>Bucket</code>。而 Bucket 擁有不同的類型，如上圖所示，所有機架的類型為 Rack；所有主機的類型為 Host，使用者可以自行定義 Bucket 的類型。Device 節點的權重代表儲存節點的效能，而硬碟容量大小是影響權重大小的重要參數。Bucket 節點的權重是其子結點的權重和。</p>
+<blockquote>
+<p><em>OSD weight = OSD size / 1 TB</em></p>
+</blockquote>
+<p><code>CRUSH</code> 透過重複執行<code>Take(bucketID)</code>和<code>Select(n, bucketType)</code>兩個操作選擇副本位置。兩個操作說明如下：</p>
+<ul>
+<li><code>Take(bucketID)</code>指定從給定的 bucketID 中選擇副本位置，例如：可以指定從某台機架上選擇副本位置，以實現將不同的副本隔離在不同的故障域；</li>
+<li><code>Select(n, bucketType)</code>則在給定的 Bucket 下選擇 n 個類型為 bucketType 的 Bucket，它選擇的 Bucket 主要考慮階層架構中節點的容量以及當節點新增或刪除時的資料搬移量。</li>
+</ul>
+<h3 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h3><p><img src="/images/ceph-crush-introduction-images/cursh-select-duplicate.png" alt="CRUSH Select Duplicate"></p>
+<p>如上圖所示，為<code>CRUSH</code>選取副本的流程圖。其符號表示如下：</p>
+<ul>
+<li><strong>bucket</strong>：<code>Take</code>操作指定的bucket；</li>
+<li><strong>type</strong>：<code>Select</code>操作指定的 Bucket 類型；</li>
+<li><strong>repnum</strong>：<code>Select</code>操作指定的副本數量；</li>
+<li><strong>rep</strong>：當前選擇的副本編號；</li>
+<li><strong>x</strong>：當前選擇的 PG 編號；</li>
+<li><strong>item Bucket</strong>：代表當前被選中的 Bucket；</li>
+<li><strong>c(r, x, in)</strong>：代表從 Bucket in 中，為 PG x 選取第 r 個副本；</li>
+<li><strong>coolide</strong>：代表當前選中的副本位置 item 已經被選中，即出現衝突；</li>
+<li><strong>reject</strong>：代表當前選中的副本位置 item 被拒絕，例如：item 已經處於 out 狀態的情況下；</li>
+<li><strong>ftotal</strong>：在 Descent 區域中選擇的失敗次數，即選擇一個副本位置的總共的失敗次數；</li>
+<li><strong>flocal</strong>：在 Local 區域中選擇的失敗次數；</li>
+<li><strong>local_tries</strong>：在 Local 區域選擇衝突時的嘗試次數；</li>
+<li><strong>local_fallback_tries</strong>：允許在 Local 區域的總共嘗試次數為 <em>bucket.size + local_fallback_retries</em> 次數，以保證遍歷完 Bucket 的所有子結點；</li>
+<li><strong>total_tries</strong>：在 Descent 的最大嘗試次數，超過這個次數則放棄這個副本。</li>
+</ul>
+<p><img src="/images/ceph-crush-introduction-images/local-descent.png" alt="Local and Descent"></p>
+<p>如上圖所示，當<code>Take</code>操作指定的 Bucket 和<code>Select</code>操作指定的 Bucket 類型之間隔著幾層的 Bucket 時，<code>CRUSH</code>會直接深度優先地進入到目的 Bucket 的直接父母節點。例如：從跟節點開始選擇 <em>N</em> 個 Host 時，它會深度優先地找到 Rack 類型的節點，並在這個節點下選取 Host 節點。為了方便描述，將 Rack 的所有子節點標記為 Local 區域；將 Take 指定的 Bucket 子結點標記為 Descent 區域。</p>
+<p>選取過程中發生衝突、過載或者故障時，<code>CRUSH</code>會先在 Local 區域內重新選擇，嘗試有限次數後，如果仍然找不到滿足條件的 Bucket，那就回到 Descent 區域重新選擇。而每次重新選擇時，修改副本數目<code>r += ftotal</code>，所以每次選擇失敗都會遞增<code>ftotal</code>，因此可以盡量避免選擇時再次選到衝突的節點。</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2016/10/07/ceph-crush-introduction/" data-id="cjydrq2vs002cws2nkyfs7zk0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2016/10/07/ceph-crush-introduction/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2016/10/07/ceph-crush-introduction/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2016/10/14/using-kvm-on-ubuntu/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    在 Ubuntu 使用 KVM 建立虛擬機
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2016/09/11/jenkins-introduction-and-install/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">持續整合工具 Jenkins 介紹與安裝</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一致性-Hash"><span class="toc-number">1.</span> <span class="toc-text">一致性 Hash</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#虛擬節點"><span class="toc-number">1.1.</span> <span class="toc-text">虛擬節點</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#區段與區段位置"><span class="toc-number">1.2.</span> <span class="toc-text">區段與區段位置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CRUSH-演算法"><span class="toc-number">2.</span> <span class="toc-text">CRUSH 演算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OSD-階層架構和權重大小"><span class="toc-number">2.1.</span> <span class="toc-text">OSD 階層架構和權重大小</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#算法流程"><span class="toc-number">2.2.</span> <span class="toc-text">算法流程</span></a></li></ol></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2016/10/07/ceph-crush-introduction/';
+        
+        this.page.identifier = 'ceph-crush-introduction';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

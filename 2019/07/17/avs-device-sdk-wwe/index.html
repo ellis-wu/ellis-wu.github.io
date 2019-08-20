@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>更換 AVS Device SDK 的喚醒詞 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="在 AVS Device SDK 中有提供 Wake Word Engine (WWE) 方便讓開發者可以換成自己的喚醒詞，而官方提供的範例預設使用了Sensory所訓練出來的 Alexa 模型。但Sensory官方文件說明它是有 120 天的使用限制的，若要當作產品使用則需要與他們聯絡，且Sensory目前也僅提供 Alexa 這個喚醒詞，但 Alexa 這個詞因為發音不正確的關係實在有夠難喚醒">
+<meta name="keywords" content="Amazon,Alexa,Raspberry Pi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="更換 AVS Device SDK 的喚醒詞">
+<meta property="og:url" content="http://ellis-wu.github.io/2019/07/17/avs-device-sdk-wwe/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="在 AVS Device SDK 中有提供 Wake Word Engine (WWE) 方便讓開發者可以換成自己的喚醒詞，而官方提供的範例預設使用了Sensory所訓練出來的 Alexa 模型。但Sensory官方文件說明它是有 120 天的使用限制的，若要當作產品使用則需要與他們聯絡，且Sensory目前也僅提供 Alexa 這個喚醒詞，但 Alexa 這個詞因為發音不正確的關係實在有夠難喚醒">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/avs-device-sdk-wwe-images/avs-device-sdk-wwe-logo.png">
+<meta property="og:updated_time" content="2019-08-15T06:12:33.933Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="更換 AVS Device SDK 的喚醒詞">
+<meta name="twitter:description" content="在 AVS Device SDK 中有提供 Wake Word Engine (WWE) 方便讓開發者可以換成自己的喚醒詞，而官方提供的範例預設使用了Sensory所訓練出來的 Alexa 模型。但Sensory官方文件說明它是有 120 天的使用限制的，若要當作產品使用則需要與他們聯絡，且Sensory目前也僅提供 Alexa 這個喚醒詞，但 Alexa 這個詞因為發音不正確的關係實在有夠難喚醒">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/avs-device-sdk-wwe-images/avs-device-sdk-wwe-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-avs-device-sdk-wwe" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/avs-device-sdk-wwe-images/avs-device-sdk-wwe-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            更換 AVS Device SDK 的喚醒詞
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2019/07/17/avs-device-sdk-wwe/">
+            <time datetime="2019-07-16T16:00:00.000Z" itemprop="datePublished">2019-07-17</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/AWS/">AWS</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Alexa/">Alexa</a>, <a class="tag-link" href="/tags/Amazon/">Amazon</a>, <a class="tag-link" href="/tags/Raspberry-Pi/">Raspberry Pi</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>在 AVS Device SDK 中有提供 Wake Word Engine (WWE) 方便讓開發者可以換成自己的喚醒詞，而官方提供的範例預設使用了<code>Sensory</code>所訓練出來的 Alexa 模型。但<code>Sensory</code>官方文件說明它是有 <strong>120 天</strong>的使用限制的，若要當作產品使用則需要與他們聯絡，且<code>Sensory</code>目前也僅提供 Alexa 這個喚醒詞，但 Alexa 這個詞因為發音不正確的關係實在有夠難喚醒的。因此，本文將<code>Sensory</code>換成<code>Snowboy</code>並且更改由<code>Snowboy</code>提供的其他喚醒詞。</p>
+<a id="more"></a>
+<h2 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h2><p>這邊需要先執行過 AVS Device SDK 的範例才能照本文教學執行，否則會有些檔案找不到。若沒有執行過可以參考<a href="/2019/07/15/avs-device-sdk-installation/" title="在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱">在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱</a>這篇文章。</p>
+<h2 id="修改檔案"><a href="#修改檔案" class="headerlink" title="修改檔案"></a>修改檔案</h2><p>因為<code>Snowboy</code>目前的教學文是透過 git patch 方式去替換一些檔案，但 AVS Device SDK 有更改檔案的路徑，因此該 patch 是無法正常使用，所以本文將一步步以手動的方式來說明該修改哪些檔案。</p>
+<h3 id="修改-pi-sh"><a href="#修改-pi-sh" class="headerlink" title="修改 pi.sh"></a>修改 pi.sh</h3><blockquote class="colorquote info"><p>若執行過 AVS Device SDK 的範例，則<code>pi.sh</code>會存放在<code>/home/pi/pi.sh</code>。</p>
+</blockquote>
+<p>首先，修改<code>CMAKE</code>相關資訊：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 原本為：</span></span><br><span class="line">CMAKE_PLATFORM_SPECIFIC=(-DSENSORY_KEY_WORD_DETECTOR=ON \</span><br><span class="line">    -DGSTREAMER_MEDIA_PLAYER=ON -DPORTAUDIO=ON \</span><br><span class="line">    -DPORTAUDIO_LIB_PATH=<span class="string">"<span class="variable">$THIRD_PARTY_PATH</span>/portaudio/lib/.libs/libportaudio.<span class="variable">$LIB_SUFFIX</span>"</span> \</span><br><span class="line">    -DPORTAUDIO_INCLUDE_DIR=<span class="string">"<span class="variable">$THIRD_PARTY_PATH</span>/portaudio/include"</span> \</span><br><span class="line">    -DSENSORY_KEY_WORD_DETECTOR_LIB_PATH=<span class="variable">$THIRD_PARTY_PATH</span>/alexa-rpi/lib/libsnsr.a \</span><br><span class="line">    -DSENSORY_KEY_WORD_DETECTOR_INCLUDE_DIR=<span class="variable">$THIRD_PARTY_PATH</span>/alexa-rpi/include)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改成：</span></span><br><span class="line">CMAKE_PLATFORM_SPECIFIC=(-DKITTAI_KEY_WORD_DETECTOR=ON \</span><br><span class="line">    -DGSTREAMER_MEDIA_PLAYER=ON -DPORTAUDIO=ON \</span><br><span class="line">    -DPORTAUDIO_LIB_PATH=<span class="string">"<span class="variable">$THIRD_PARTY_PATH</span>/portaudio/lib/.libs/libportaudio.<span class="variable">$LIB_SUFFIX</span>"</span> \</span><br><span class="line">    -DPORTAUDIO_INCLUDE_DIR=<span class="string">"<span class="variable">$THIRD_PARTY_PATH</span>/portaudio/include"</span> \</span><br><span class="line">    -DKITTAI_KEY_WORD_DETECTOR_LIB_PATH=<span class="variable">$THIRD_PARTY_PATH</span>/snowboy/lib/rpi/libsnowboy-detect.a \</span><br><span class="line">    -DKITTAI_KEY_WORD_DETECTOR_INCLUDE_DIR=<span class="variable">$THIRD_PARTY_PATH</span>/snowboy/include \</span><br><span class="line">    -DCMAKE_BUILD_TYPE=MINSIZEREL)</span><br></pre></td></tr></table></figure></p>
+<p>修改相依性套件：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 原本為：</span></span><br><span class="line">sudo apt-get -y install git gcc cmake build-essential libsqlite3-dev libcurl4-openssl-dev libssl1.0-dev libfaad-dev libsoup2.4-dev libgcrypt20-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good libasound2-dev sox gedit vim python3-pip</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改成：</span></span><br><span class="line">sudo apt-get -y install git gcc cmake build-essential libsqlite3-dev libcurl4-openssl-dev libssl1.0-dev libfaad-dev libsoup2.4-dev libgcrypt20-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good libasound2-dev sox gedit vim python3-pip libatlas-base-dev</span><br></pre></td></tr></table></figure></p>
+<p><strong>(Options)</strong> 修改腳本輸出：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 原本為：</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"==============&gt; CLONING AND BUILDING SENSORY =============="</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改成：</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"==============&gt; CLONING AND BUILDING KITTAI =============="</span></span><br></pre></td></tr></table></figure></p>
+<p>將原本從<code>Sensory</code>下載相關檔案改為<code>Snowboy</code>：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 原本為：</span></span><br><span class="line">git <span class="built_in">clone</span> git://github.com/Sensory/alexa-rpi.git</span><br><span class="line">bash ./alexa-rpi/bin/license.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改成：</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/Kitt-AI/snowboy.git</span><br><span class="line">cp snowboy/resources/alexa/alexa-avs-sample-app/alexa.umdl snowboy/resources/alexa.umdl</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>這邊可以從 <a href="https://github.com/Kitt-AI/snowboy/tree/master/resources/models" target="_blank" rel="noopener">Snowboy</a> 的 GitHub 找到它提供的其他喚醒詞模型，但是不論使用哪個喚醒詞，都要把它命名為<code>alexa.umdl</code>。因為 AVS Device SDK 的範例程式只認得這個檔案名稱。</p>
+</blockquote>
+<p>修改執行 AVS Device SDK 範例指令：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 原本為：</span></span><br><span class="line">./SampleApp <span class="string">"<span class="variable">$OUTPUT_CONFIG_FILE</span>"</span> <span class="string">"<span class="variable">$THIRD_PARTY_PATH</span>/alexa-rpi/models"</span> DEBUG9</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改成：</span></span><br><span class="line">./SampleApp <span class="string">"<span class="variable">$OUTPUT_CONFIG_FILE</span>"</span> <span class="string">"<span class="variable">$THIRD_PARTY_PATH</span>/snowboy/resources"</span> DEBUG9</span><br></pre></td></tr></table></figure></p>
+<p>修改完成後即可儲存。</p>
+<h3 id="修改-setup-sh"><a href="#修改-setup-sh" class="headerlink" title="修改 setup.sh"></a>修改 setup.sh</h3><blockquote class="colorquote info"><p>若執行過 AVS Device SDK 的範例，則<code>setup.sh</code>會存放在<code>/home/pi/setup.sh</code>。</p>
+</blockquote>
+<p>首先，新增一個變數：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">LIB_SUFFIX=<span class="string">"a"</span></span><br><span class="line">ANDROID_CONFIG_FILE=<span class="string">""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 新增下面這行</span></span><br><span class="line">BUILDTYPE=<span class="string">"MINSIZEREL"</span></span><br></pre></td></tr></table></figure></p>
+<p>接著，找到以下資訊並新增一行指令：<br><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cmake <span class="string">"<span class="variable">$SOURCE_PATH</span>/avs-device-sdk"</span> \</span><br><span class="line">      -DCMAKE_BUILD_TYPE=DEBUG \</span><br><span class="line">      <span class="string">"<span class="variable">$&#123;CMAKE_PLATFORM_SPECIFIC[@]&#125;</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 新增下面這行</span></span><br><span class="line">sed -E -i <span class="string">"s:CXX_PLATFORM_DEPENDENT_FLAGS_"</span><span class="variable">$BUILDTYPE</span><span class="string">"\s+\"(.*)\":CXX_PLATFORM_DEPENDENT_FLAGS_"</span><span class="variable">$BUILDTYPE</span><span class="string">" \"\1 -D_GLIBCXX_USE_CXX11_ABI=0 -pg\":"</span> ../avs-device-sdk/build/cmake/BuildOptions.cmake</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$BUILD_PATH</span></span><br><span class="line">make SampleApp -j2</span><br></pre></td></tr></table></figure></p>
+<p>修改完成後即可儲存。</p>
+<h2 id="重新編譯-AVS-Device-SDK-與範例"><a href="#重新編譯-AVS-Device-SDK-與範例" class="headerlink" title="重新編譯 AVS Device SDK 與範例"></a>重新編譯 AVS Device SDK 與範例</h2><p>重新編譯 AVS Device SDK 與範例程式之前，我們需要刪除一些檔案。因為，現在<code>setup.sh</code>會檢查一些檔案路徑來判斷是否需要重新安裝套件或編譯檔案。若不刪除，剛剛的改動有部分指令會沒有執行到：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /home/pi/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo rm -rf build/ avs-device-sdk/</span></span><br></pre></td></tr></table></figure></p>
+<p>刪除後，透過以下指令開始重新安裝套件與編譯 AVS Device SDK：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo bash setup.sh config.json -s 998987</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>因為是重新編譯 AVS Device SDK，所以整個安裝過程大約 15 至 20 分鐘。</p>
+</blockquote>
+<h2 id="更換喚醒詞"><a href="#更換喚醒詞" class="headerlink" title="更換喚醒詞"></a>更換喚醒詞</h2><p>安裝完成後，預設的喚醒詞依然是 Alexa，所以我們要使用<code>Snowboy</code>提供的其他喚醒詞來替換掉原本的 <strong>“Alexa”</strong>。<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo cp /home/pi/third-party/snowboy/resources/models/jarvis.umdl /home/pi/third-party/snowboy/resources/alexa.umdl</span></span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>這邊選擇 computer 這個喚醒詞，可以依照自己情況選擇其他的喚醒詞。</p>
+</blockquote>
+<h2 id="開始體驗"><a href="#開始體驗" class="headerlink" title="開始體驗"></a>開始體驗</h2><p>選擇並且替換喚醒詞後，可以按照原本使用 AVS Device SDK 的範例一樣使用：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo bash startsample.sh</span></span><br></pre></td></tr></table></figure></p>
+<p>看到以下資訊後，就可以用你替換的喚醒詞叫醒它了!<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#######################################</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">       Alexa is currently idle!       <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#######################################</span></span></span><br></pre></td></tr></table></figure></p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2019/07/17/avs-device-sdk-wwe/" data-id="cjzamyavp0000w72ni5vxa1d7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2019/07/17/avs-device-sdk-wwe/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2019/07/17/avs-device-sdk-wwe/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2019/07/19/alexa-skills-kit/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    Alexa Skills Kit 新手教學
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2019/07/15/avs-device-sdk-installation/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">在 Raspberry Pi 上使用 AVS Device SDK 實現智慧音箱</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#事前準備"><span class="toc-number">1.</span> <span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改檔案"><span class="toc-number">2.</span> <span class="toc-text">修改檔案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#修改-pi-sh"><span class="toc-number">2.1.</span> <span class="toc-text">修改 pi.sh</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#修改-setup-sh"><span class="toc-number">2.2.</span> <span class="toc-text">修改 setup.sh</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#重新編譯-AVS-Device-SDK-與範例"><span class="toc-number">3.</span> <span class="toc-text">重新編譯 AVS Device SDK 與範例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#更換喚醒詞"><span class="toc-number">4.</span> <span class="toc-text">更換喚醒詞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開始體驗"><span class="toc-number">5.</span> <span class="toc-text">開始體驗</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2019/07/17/avs-device-sdk-wwe/';
+        
+        this.page.identifier = 'avs-device-sdk-wwe';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

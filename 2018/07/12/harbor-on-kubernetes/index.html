@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>使用 Helm 在 Kubernetes 上部署 Harbor | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="在之前已經介紹過 Harbor，且是在實體機上的透過docker-compose簡單且快速的部署 Harbor。而本篇將介紹如何透過 Kubernetes Helm 來部署 Harbor。而官方在早期有提供 YAML 來直接部署 Harbor 在 Kubernetes 之上，且 Harbor 的版本為 v1.2。但後來官方不建議直接使用 YAML 來部署 Harbor，而是透過 Helm 來部署。">
+<meta name="keywords" content="Harbor,Docker Registry,Helm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Helm 在 Kubernetes 上部署 Harbor">
+<meta property="og:url" content="http://ellis-wu.github.io/2018/07/12/harbor-on-kubernetes/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="在之前已經介紹過 Harbor，且是在實體機上的透過docker-compose簡單且快速的部署 Harbor。而本篇將介紹如何透過 Kubernetes Helm 來部署 Harbor。而官方在早期有提供 YAML 來直接部署 Harbor 在 Kubernetes 之上，且 Harbor 的版本為 v1.2。但後來官方不建議直接使用 YAML 來部署 Harbor，而是透過 Helm 來部署。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/harbor-on-kubernetes-images/harbor-on-kubernetes-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 Helm 在 Kubernetes 上部署 Harbor">
+<meta name="twitter:description" content="在之前已經介紹過 Harbor，且是在實體機上的透過docker-compose簡單且快速的部署 Harbor。而本篇將介紹如何透過 Kubernetes Helm 來部署 Harbor。而官方在早期有提供 YAML 來直接部署 Harbor 在 Kubernetes 之上，且 Harbor 的版本為 v1.2。但後來官方不建議直接使用 YAML 來部署 Harbor，而是透過 Helm 來部署。">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/harbor-on-kubernetes-images/harbor-on-kubernetes-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-harbor-on-kubernetes" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/harbor-on-kubernetes-images/harbor-on-kubernetes-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            使用 Helm 在 Kubernetes 上部署 Harbor
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/07/12/harbor-on-kubernetes/">
+            <time datetime="2018-07-11T16:00:00.000Z" itemprop="datePublished">2018-07-12</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Kubernetes/">Kubernetes</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Docker-Registry/">Docker Registry</a>, <a class="tag-link" href="/tags/Harbor/">Harbor</a>, <a class="tag-link" href="/tags/Helm/">Helm</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>在之前已經介紹過 <a href="/2018/05/03/harbor-docker-registry/" title="Harbor">Harbor</a>，且是在實體機上的透過<code>docker-compose</code>簡單且快速的部署 Harbor。而本篇將介紹如何透過 Kubernetes Helm 來部署 Harbor。而官方在早期有提供 YAML 來直接部署 Harbor 在 Kubernetes 之上，且 Harbor 的版本為 v1.2。但後來官方不建議直接使用 YAML 來部署 Harbor，而是透過 Helm 來部署。因此本文將介紹如何用 Kubernetes Helm 來部署 Harbor 在 Kubernetes 上。</p>
+<a id="more"></a>
+<blockquote class="colorquote danger"><p>目前 Harbor 部署在 Kubernetes v1.8+ 上，會遇到一些問題 (<a href="https://github.com/vmware/harbor/issues/5295#issuecomment-404409532" target="_blank" rel="noopener">#5295</a>)。本文操作皆使用 Harbor Master Branch，但 Master Branch 為開發 Branch 可能某些步驟或設定會與實際情況稍微不同。因此，目前不適合在 Production 環境中使用，可能要等到 Harbor 釋出 1.6 後再來測試看看。</p>
+</blockquote>
+<h2 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h2><p>目前 Harbor 官方透過 Helm 部署在 Kubernetes 上有些限制與需求，請確認以下需求：</p>
+<ul>
+<li>Kubernetes cluster 1.8+ with Beta APIs enabled</li>
+<li>Kubernetes Ingress Controller is enabled</li>
+<li>kubectl CLI 1.8+</li>
+<li>Helm CLI 2.8.0+</li>
+</ul>
+<p>而本文事先準備了一個 Kubernetes 叢集，且是利用<code>kubeadm</code>所部署而成；環境並非實體機而為虛擬機機。再準備一台機器並安裝 NFS Server，此 NFS Server 將儲存 Harbor 一些資訊以及 Docker Images 的儲存。</p>
+<table>
+<thead>
+<tr>
+<th>IP Address</th>
+<th>Role</th>
+<th>CPU</th>
+<th>RAM</th>
+<th>Disk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>172.20.3.57</td>
+<td>Master1</td>
+<td>2 vCPU</td>
+<td>2 GB</td>
+<td>40 GB</td>
+</tr>
+<tr>
+<td>172.20.3.50</td>
+<td>Node1</td>
+<td>2 vCPU</td>
+<td>2 GB</td>
+<td>40 GB</td>
+</tr>
+<tr>
+<td>172.20.3.55</td>
+<td>Node2</td>
+<td>2 vCPU</td>
+<td>2 GB</td>
+<td>40 GB</td>
+</tr>
+<tr>
+<td>172.16.35.50</td>
+<td>NFS Server</td>
+<td>1 vCPU</td>
+<td>2 GB</td>
+<td>200 GB</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>作業系統皆為 Ubuntu 16.04；</li>
+<li>Docker 版本為 1.18.03；</li>
+<li>Kubernetes 版本為 1.10.3；Kubernetes CNI 為<code>Calico</code>。</li>
+</ul>
+<blockquote class="colorquote info"><p>利用<code>kubeadm</code>部署 Kubernetes 叢集，可以參考 <a href="https://kairen.github.io/2016/09/29/kubernetes/deploy/kubeadm/" target="_blank" rel="noopener">只要用 kubeadm 小朋友都能部署 Kubernetes</a>。</p>
+</blockquote>
+<h2 id="安裝-Kubernetes-Nginx-Ingress"><a href="#安裝-Kubernetes-Nginx-Ingress" class="headerlink" title="安裝 Kubernetes Nginx Ingress"></a>安裝 Kubernetes Nginx Ingress</h2><p>使用 Helm 部署 Harbor 時，會使用到 Kubernetes Ingress 將 Harbor 的各個服務 expose 出來。而本文選擇使用 <a href="https://github.com/kubernetes/ingress-nginx" target="_blank" rel="noopener">Nginx Ingress</a> 作為 Ingress Controller。以下為使用官方檔案快速部署 ingress-nginx controller：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml</span><br></pre></td></tr></table></figure></p>
+<p>因為我們是虛擬機上部署 ingress-nginx。因此，透過<code>NodePort</code>將 ingress-nginx 的服務 expose 出來：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/baremetal/service-nodeport.yaml</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><ul>
+<li>其他平台要啟用 ingress-nginx 或者將 Ingress 服務 expose，請參考 <a href="https://github.com/kubernetes/ingress-nginx/blob/master/docs/deploy/index.md#provider-specific-steps" target="_blank" rel="noopener">這裡</a>；</li>
+<li>Ingress 不一定要依照以上方法透過<code>NodePort</code>將服務 expose，可依照自己的需求替換。</li>
+</ul>
+</blockquote>
+<p>完成後，透過<code>kubectl</code>查看：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl -n ingress-nginx get po,svc</span><br><span class="line">NAME                                           READY     STATUS    RESTARTS   AGE</span><br><span class="line">pod/default-http-backend-5c6d95c48-bb89j       1/1       Running   0          2m</span><br><span class="line">pod/nginx-ingress-controller-c6d66b4fb-7s2bh   1/1       Running   0          2m</span><br><span class="line"></span><br><span class="line">NAME                           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE</span><br><span class="line">service/default-http-backend   ClusterIP   10.105.57.243   &lt;none&gt;        80/TCP                       2m</span><br><span class="line">service/ingress-nginx          NodePort    10.108.5.125    &lt;none&gt;        80:31940/TCP,443:31164/TCP   2m</span><br></pre></td></tr></table></figure></p>
+<p>這邊可以看到 ingress-nginx 透過<code>NodePort</code>將服務 expose 出來。若應用程式為 HTTP 協定則由 31940 port 將應用程式 expose；若為 HTTPS 協定則由 31164 port 將應用程式 expose。</p>
+<h2 id="安裝-Kubernetes-Helm"><a href="#安裝-Kubernetes-Helm" class="headerlink" title="安裝 Kubernetes Helm"></a>安裝 Kubernetes Helm</h2><p>因為要使用 Helm 來部署 Harbor，所以我們需要先安裝 Helm。而 Helm 的安裝方式有很多，這邊使用 binary 的方式進行安裝：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> wget -qO- https://kubernetes-helm.storage.googleapis.com/helm-v2.9.1-linux-amd64.tar.gz | tar -zx</span><br><span class="line"><span class="meta">$</span> mv linux-amd64/helm /usr/local/bin</span><br></pre></td></tr></table></figure></p>
+<p>接著為 Helm 設定 RBAC 並初始化 Helm：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl -n kube-system create sa tiller</span><br><span class="line"><span class="meta">$</span> kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller</span><br><span class="line"><span class="meta">$</span> helm init --service-account tiller</span><br></pre></td></tr></table></figure></p>
+<p>完成後，就可以透過<code>kubectl</code>來查看 Tiller Server 是否被建立：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl get po,svc -n kube-system -l app=helm</span><br><span class="line">NAME                                 READY     STATUS    RESTARTS   AGE</span><br><span class="line">pod/tiller-deploy-5c688d5f9b-s67d7   1/1       Running   0          3m</span><br><span class="line"></span><br><span class="line">NAME                    TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE</span><br><span class="line">service/tiller-deploy   ClusterIP   10.106.146.158   &lt;none&gt;        44134/TCP   3m</span><br></pre></td></tr></table></figure></p>
+<h2 id="使用-Helm-部署-Harbor"><a href="#使用-Helm-部署-Harbor" class="headerlink" title="使用 Helm 部署 Harbor"></a>使用 Helm 部署 Harbor</h2><p>在使用 Helm 部署 Harbor 之前，我們需要先準備四個 Persistent Volumes 提供給 Harbor 的服務。而這邊使用 NFS 來提供四個 Persistent Volumes。</p>
+<p>先到 NFS Server 上建立四個資料夾：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> mkdir -p /var/nfsshare/nfs&#123;1..4&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接著回到 Kubernetes Master 上，透過以下指令來建立四個 Persistent Volume：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> for i in &#123;1..4&#125;; do</span><br><span class="line">cat &lt;&lt;EOF | kubectl create -f -</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolume</span><br><span class="line">metadata:</span><br><span class="line">  name: pv00$&#123;i&#125;</span><br><span class="line">spec:</span><br><span class="line">  capacity:</span><br><span class="line">    storage: 50Gi</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  persistentVolumeReclaimPolicy: Recycle</span><br><span class="line">  nfs:</span><br><span class="line">    path: /var/nfsshare/nfs$&#123;i&#125;</span><br><span class="line">    server: 172.16.35.50</span><br><span class="line">EOF</span><br><span class="line">done</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>以上步驟若有其他後端儲存系統，請依照自己的需求替換。</p>
+</blockquote>
+<p>再來，使用<code>kubectl</code>指令確認 Persistent Volume 是否建立起來：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl get pv</span><br><span class="line">NAME      CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM     STORAGECLASS   REASON    AGE</span><br><span class="line">pv001     50Gi       RWO            Recycle          Available                                      3s</span><br><span class="line">pv002     50Gi       RWO            Recycle          Available                                      3s</span><br><span class="line">pv003     50Gi       RWO            Recycle          Available                                      2s</span><br><span class="line">pv004     50Gi       RWO            Recycle          Available                                      2s</span><br></pre></td></tr></table></figure></p>
+<p>當 Persistent Volume 準備完成後，透過 Git 取得 <a href="https://github.com/vmware/harbor" target="_blank" rel="noopener">Harbor</a> 官方提供的 Helm Chart ：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> git clone https://github.com/vmware/harbor.git</span><br><span class="line"><span class="meta">$</span> cd harbor/contrib/helm/harbor/</span><br><span class="line"><span class="meta">$</span> helm dependency update</span><br></pre></td></tr></table></figure></p>
+<p>在預設的情況下，Helm 部署的 Harbor 會是走 HTTPS 協定。因此需要修改<code>values.yaml</code>中的<code>externalPort</code>，將<code>externalPort</code>設定為 ingress-nginx HTTPS Port：<br><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># The Port for Harbor service, leave empty if the service</span></span><br><span class="line"><span class="comment"># is to be bound to port 80/443</span></span><br><span class="line"><span class="attr">externalPort:</span> <span class="number">31164</span></span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>若要設定 Harbor 的其他資訊，請修改<code>values.yaml</code>的設定，而每個設定資訊請參考 <a href="https://github.com/vmware/harbor/tree/master/contrib/helm/harbor#configuration" target="_blank" rel="noopener">這裡</a></p>
+</blockquote>
+<p>以上設定完成後，使用 Helm 指令部署 Harbor：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> helm install . --debug --name my-harbor --set externalDomain=harbor.my.domain</span><br><span class="line">...</span><br><span class="line">NOTES:</span><br><span class="line">Please wait for several minutes for Harbor deployment to complete.</span><br><span class="line">Then you should be able to visit the UI portal at https://harbor.my.domain:31164.</span><br><span class="line">For more details, please visit https://github.com/vmware/harbor.</span><br></pre></td></tr></table></figure></p>
+<p>透過<code>kubectl</code>查看 Harbor 是否部署成功：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl get po</span><br><span class="line">NAME                                              READY     STATUS    RESTARTS   AGE</span><br><span class="line">my-harbor-harbor-adminserver-0                    1/1       Running   1          7m</span><br><span class="line">my-harbor-harbor-clair-5f7547dc95-mwkjg           1/1       Running   1          7m</span><br><span class="line">my-harbor-harbor-database-0                       1/1       Running   0          7m</span><br><span class="line">my-harbor-harbor-jobservice-6764bf89b6-b898c      1/1       Running   1          7m</span><br><span class="line">my-harbor-harbor-notary-server-64fcd84cf5-79sfj   1/1       Running   0          7m</span><br><span class="line">my-harbor-harbor-notary-signer-7d6c45fc8f-54xnf   1/1       Running   0          7m</span><br><span class="line">my-harbor-harbor-registry-0                       1/1       Running   0          7m</span><br><span class="line">my-harbor-harbor-ui-848d95d674-rq9hv              1/1       Running   2          7m</span><br><span class="line">my-harbor-postgresql-558fc8ddd6-4rl69             1/1       Running   0          7m</span><br><span class="line">my-harbor-redis-master-0                          1/1       Running   0          7m</span><br></pre></td></tr></table></figure></p>
+<p>若部署完成後，將<code>harbor.my.domain</code>加入至<code>/etc/hosts</code>：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="number">127.0</span>.<span class="number">0.1</span>     docker-node1    single-node1</span><br><span class="line"><span class="number">127.0</span>.<span class="number">0.1</span>     localhost</span><br><span class="line"><span class="number">127.0</span>.<span class="number">1.1</span>     vagrant.vm      vagrant</span><br><span class="line"><span class="number">172.20</span>.<span class="number">3.57</span>   harbor.my.domain</span><br></pre></td></tr></table></figure></p>
+<p>接著可以透過瀏覽器查看 <a href="https://harbor.my.domain:31164" target="_blank" rel="noopener">Harbor Web UI</a>。<br><img src="/images/harbor-on-kubernetes-images/harbor-ui.png" alt="Harbor Web UI"></p>
+<blockquote class="colorquote success"><p>預設的管理者帳號密碼為 admin/Harbor12345</p>
+</blockquote>
+<h2 id="開始使用-Harbor"><a href="#開始使用-Harbor" class="headerlink" title="開始使用 Harbor"></a>開始使用 Harbor</h2><p>確認 Helm 部署的 Harbor 沒問題後，可以開始使用 Harbor。以下將說明如何讓 Docker Client 如何存取私有的 Registry 以及一些基本操作。</p>
+<h3 id="設定-Docker-存取私有-Registry"><a href="#設定-Docker-存取私有-Registry" class="headerlink" title="設定 Docker 存取私有 Registry"></a>設定 Docker 存取私有 Registry</h3><p>首先，要讓 Docker 能存取私有的 Registry 需要對 Docker 做一些小小的設定，而設定方式有以下兩種方式：</p>
+<ol>
+<li><strong>使用自帶的憑證(CA)</strong>：為了安全性考量，私有的 Registry 自帶憑證。當 Docker Client 與私有的 Registry 進行溝通時都需要使用此憑證，而這也是目前 Docker 官方推薦的做法；</li>
+<li><strong>設定 Insecure Registry</strong>：直接設定為 Insecure Registry，因為安全性的考量目前此方法官方並不推薦。</li>
+</ol>
+<p>而兩種方法選擇其中一種設定即可。</p>
+<h4 id="設定憑證-CA"><a href="#設定憑證-CA" class="headerlink" title="設定憑證(CA)"></a>設定憑證(CA)</h4><p>因為我們部署的 Harbor 是有自帶憑證(CA)，所以需要再 Docker Client 加入憑證，這樣 Docker Client 才有辦法存取到私有的 Registry。</p>
+<p>首先，在 Kubernetes Master 使用以下指令取得憑證資訊：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl get secrets/my-harbor-harbor-ingress -o jsonpath="&#123;.data.ca\.crt&#125;" | base64 --decode</span><br><span class="line">-----BEGIN CERTIFICATE-----</span><br><span class="line">MIIC5TCCAc2gAwIBAgIBATANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDEwloYXJi</span><br><span class="line">b3ItY2EwHhcNMTgwNzE4MDIwOTQzWhcNMjgwNzE1MDIwOTQzWjAUMRIwEAYDVQQD</span><br><span class="line">EwloYXJib3ItY2EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDg8W4q</span><br><span class="line">uGb3TmdbBt419EG6FXtM+RZhdBiz+h0DR7/C9kU5LzjONuJCxyXn/8TDqeD6Mdxf</span><br><span class="line">HeakWMxTclbpmmBkeu0FIErl0xA9dFBYl6hpLwcka9U9Lo0gKeVHRGqS0PXnFP6X</span><br><span class="line">mUSyrq24NKceBan2vx1VAqG+2m+zEGzpKjL06aXkVHtY01NbL75Xc+l9a28i46Wq</span><br><span class="line">UHAc29XjaJDIU9pf+E2RV3IQWe9Klbf9hIOs8mtYN373bM73ma0oLRK3/4U/6SMz</span><br><span class="line">UHGoRSIT59LKSB9cE/qB5A7HvBJLeIMQa8se3xdfmMqEARNhz+cRtRFN2MMbbmFq</span><br><span class="line">y2TMANpGs+aVfMmdAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwICpDAdBgNVHSUEFjAU</span><br><span class="line">BggrBgEFBQcDAQYIKwYBBQUHAwIwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0B</span><br><span class="line">AQsFAAOCAQEAZnmk90vWl+uRJJO51ZQTHjmDjTA246nJ9upyXlf2S3t4TOySeXup</span><br><span class="line">ji6O1Sj4Xf4Dcqx/4Cb+Yzz0nw7bnxnbsNUo3fIcT7FRlYPlmKyUzf6WrcgvMFSf</span><br><span class="line">rgTfAR0upEWDArkndN3zNESU/Kq8veJwX3AnQfabMHVU6XDQIL3jRqVlObqTVCrN</span><br><span class="line">14eVcJDhBu6waiaPOxduh8Jfvu0YEc3ZdmP1ZyUjFUCTjVEOl+vg3uIjWouzanZw</span><br><span class="line">aLutMQCtDsEH5VgLku4ir5FkCG8riyZCCqKZtbMmpJaJGJQqAiJ4+RPrdNY9eTMO</span><br><span class="line">4KcVrC6715h3S44aylrvleJlU2S6UHRDLg==</span><br><span class="line">-----END CERTIFICATE-----</span><br></pre></td></tr></table></figure></p>
+<p>取得憑證後，在每一台 Docker Client 加入以下憑證：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> mkdir /etc/docker/certs.d/harbor.my.domain:31164</span><br><span class="line"><span class="meta">$</span> cat &lt;&lt;EOF &gt; /etc/docker/certs.d/harbor.my.domain:31164/ca.crt</span><br><span class="line">-----BEGIN CERTIFICATE-----</span><br><span class="line">MIIC5TCCAc2gAwIBAgIBATANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDEwloYXJi</span><br><span class="line">b3ItY2EwHhcNMTgwNzE4MDIwOTQzWhcNMjgwNzE1MDIwOTQzWjAUMRIwEAYDVQQD</span><br><span class="line">EwloYXJib3ItY2EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDg8W4q</span><br><span class="line">uGb3TmdbBt419EG6FXtM+RZhdBiz+h0DR7/C9kU5LzjONuJCxyXn/8TDqeD6Mdxf</span><br><span class="line">HeakWMxTclbpmmBkeu0FIErl0xA9dFBYl6hpLwcka9U9Lo0gKeVHRGqS0PXnFP6X</span><br><span class="line">mUSyrq24NKceBan2vx1VAqG+2m+zEGzpKjL06aXkVHtY01NbL75Xc+l9a28i46Wq</span><br><span class="line">UHAc29XjaJDIU9pf+E2RV3IQWe9Klbf9hIOs8mtYN373bM73ma0oLRK3/4U/6SMz</span><br><span class="line">UHGoRSIT59LKSB9cE/qB5A7HvBJLeIMQa8se3xdfmMqEARNhz+cRtRFN2MMbbmFq</span><br><span class="line">y2TMANpGs+aVfMmdAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwICpDAdBgNVHSUEFjAU</span><br><span class="line">BggrBgEFBQcDAQYIKwYBBQUHAwIwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0B</span><br><span class="line">AQsFAAOCAQEAZnmk90vWl+uRJJO51ZQTHjmDjTA246nJ9upyXlf2S3t4TOySeXup</span><br><span class="line">ji6O1Sj4Xf4Dcqx/4Cb+Yzz0nw7bnxnbsNUo3fIcT7FRlYPlmKyUzf6WrcgvMFSf</span><br><span class="line">rgTfAR0upEWDArkndN3zNESU/Kq8veJwX3AnQfabMHVU6XDQIL3jRqVlObqTVCrN</span><br><span class="line">14eVcJDhBu6waiaPOxduh8Jfvu0YEc3ZdmP1ZyUjFUCTjVEOl+vg3uIjWouzanZw</span><br><span class="line">aLutMQCtDsEH5VgLku4ir5FkCG8riyZCCqKZtbMmpJaJGJQqAiJ4+RPrdNY9eTMO</span><br><span class="line">4KcVrC6715h3S44aylrvleJlU2S6UHRDLg==</span><br><span class="line">-----END CERTIFICATE-----</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure></p>
+<h4 id="設定-Insecure-Registry"><a href="#設定-Insecure-Registry" class="headerlink" title="設定 Insecure Registry"></a>設定 Insecure Registry</h4><blockquote class="colorquote danger"><p>以上使用憑證的方式是因為安全性的考量，但也可以修改 Docker 設定來使用 Insecure Registry。但這樣並不安全所以<strong>不建議使用</strong>。</p>
+</blockquote>
+<p>新增<code>--insecure-registry</code>參數至<code>/etc/default/docker</code>中：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">DOCKER_OPTS="--insecure-registry harbor.my.domain:31164"</span><br></pre></td></tr></table></figure></p>
+<p>若在 <em><strong>Ubuntu 16.04</strong></em> 版本，還需要修改<code>/lib/systemd/system/docker.service</code>檔案：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">EnvironmentFile=-/etc/default/%p</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// $DOCKER_OPTS</span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>其他細節，請參考 <a href="https://docs.docker.com/registry/insecure/#deploying-a-plain-http-registry" target="_blank" rel="noopener">Test an insecure registry</a></p>
+</blockquote>
+<p>修改完成後，重新啟動服務：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo systemctl daemon-reload</span><br><span class="line"><span class="meta">$</span> sudo systemctl restart docker.service</span><br></pre></td></tr></table></figure></p>
+<h3 id="登入-Docker-client"><a href="#登入-Docker-client" class="headerlink" title="登入 Docker client"></a>登入 Docker client</h3><p>以上設定完成後，可以透過 Docker 指令進行 login：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker login harbor.my.domain:31164</span><br></pre></td></tr></table></figure></p>
+<h3 id="Push-Image"><a href="#Push-Image" class="headerlink" title="Push Image"></a>Push Image</h3><p>將映像檔上 tag 之後，上傳至 Harbor：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker tag ubuntu:16.04 harbor.my.domain:31164/&lt;your project&gt;/ubuntu:16.04</span><br><span class="line"><span class="meta">$</span> docker push harbor.my.domain:31164/&lt;your project&gt;/ubunut:16.04</span><br></pre></td></tr></table></figure></p>
+<p>可以在 Harbor Web UI 上看到剛剛 push 的 docker image。</p>
+<p><img src="/images/harbor-on-kubernetes-images/harbor-push.png" alt="Push Image to Harbor"></p>
+<h3 id="Pull-Image"><a href="#Pull-Image" class="headerlink" title="Pull Image"></a>Pull Image</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker pull &lt;your harbor.cfg hostname&gt;/&lt;your project&gt;/ubunut:16.04</span><br></pre></td></tr></table></figure>
+<blockquote class="colorquote info"><p>更多使用者操作，請參考 <a href="https://github.com/vmware/harbor/blob/master/docs/user_guide.md" target="_blank" rel="noopener">Harbor User Guide</a></p>
+</blockquote>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://github.com/vmware/harbor" target="_blank" rel="noopener">Harbor Github</a></li>
+<li><a href="https://kairen.github.io/2017/03/25/kubernetes/helm-quickstart/" target="_blank" rel="noopener">Kuberentes Helm 介紹</a></li>
+<li><a href="https://github.com/kubernetes/ingress-nginx" target="_blank" rel="noopener">ingress-nginx Github</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2018/07/12/harbor-on-kubernetes/" data-id="cjydrq2vw002gws2njwrlm3nq" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2018/07/12/harbor-on-kubernetes/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2018/07/12/harbor-on-kubernetes/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/07/26/kustomize-introduction/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    使用 Kustomize 管理 Kubernetes 配置檔
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2018/06/13/hexo-color-quote/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">Hexo 新增 Color Quote</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#事前準備"><span class="toc-number">1.</span> <span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-Kubernetes-Nginx-Ingress"><span class="toc-number">2.</span> <span class="toc-text">安裝 Kubernetes Nginx Ingress</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-Kubernetes-Helm"><span class="toc-number">3.</span> <span class="toc-text">安裝 Kubernetes Helm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-Helm-部署-Harbor"><span class="toc-number">4.</span> <span class="toc-text">使用 Helm 部署 Harbor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開始使用-Harbor"><span class="toc-number">5.</span> <span class="toc-text">開始使用 Harbor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-Docker-存取私有-Registry"><span class="toc-number">5.1.</span> <span class="toc-text">設定 Docker 存取私有 Registry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#登入-Docker-client"><span class="toc-number">5.2.</span> <span class="toc-text">登入 Docker client</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Push-Image"><span class="toc-number">5.3.</span> <span class="toc-text">Push Image</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Pull-Image"><span class="toc-number">5.4.</span> <span class="toc-text">Pull Image</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">6.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2018/07/12/harbor-on-kubernetes/';
+        
+        this.page.identifier = 'harbor-on-kubernetes';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>持續整合工具 Jenkins 介紹與安裝 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Jenkins 是一個持續整合 (Continuous Integration, CI)的web-based 伺服器，提供了實行持續整合的基礎設施。因為設計上擁有極高的擴充性與彈性並且為 Open Source 的專案，因此擁有為數不少開發者為其貢獻延伸套件，本身提供了許多功能如 Distrubted Builds、Test Reports、Notifications 等強大功能，近年來更廣被使用">
+<meta name="keywords" content="Docker,Jenkins,CI&#x2F;CD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="持續整合工具 Jenkins 介紹與安裝">
+<meta property="og:url" content="http://ellis-wu.github.io/2016/09/11/jenkins-introduction-and-install/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="Jenkins 是一個持續整合 (Continuous Integration, CI)的web-based 伺服器，提供了實行持續整合的基礎設施。因為設計上擁有極高的擴充性與彈性並且為 Open Source 的專案，因此擁有為數不少開發者為其貢獻延伸套件，本身提供了許多功能如 Distrubted Builds、Test Reports、Notifications 等強大功能，近年來更廣被使用">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/jenkins-introduction-and-install-images/jenkins-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="持續整合工具 Jenkins 介紹與安裝">
+<meta name="twitter:description" content="Jenkins 是一個持續整合 (Continuous Integration, CI)的web-based 伺服器，提供了實行持續整合的基礎設施。因為設計上擁有極高的擴充性與彈性並且為 Open Source 的專案，因此擁有為數不少開發者為其貢獻延伸套件，本身提供了許多功能如 Distrubted Builds、Test Reports、Notifications 等強大功能，近年來更廣被使用">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/jenkins-introduction-and-install-images/jenkins-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-jenkins-introduction-and-install" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/jenkins-introduction-and-install-images/jenkins-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            持續整合工具 Jenkins 介紹與安裝
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2016/09/11/jenkins-introduction-and-install/">
+            <time datetime="2016-09-10T16:00:00.000Z" itemprop="datePublished">2016-09-11</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/DevOps/">DevOps</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/CI-CD/">CI/CD</a>, <a class="tag-link" href="/tags/Docker/">Docker</a>, <a class="tag-link" href="/tags/Jenkins/">Jenkins</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>Jenkins 是一個<code>持續整合 (Continuous Integration, CI)</code>的<code>web-based 伺服器</code>，提供了實行持續整合的基礎設施。因為設計上<strong>擁有極高的擴充性與彈性並且為 Open Source 的專案</strong>，因此擁有為數不少開發者為其貢獻延伸套件，本身提供了許多功能如 Distrubted Builds、Test Reports、Notifications 等強大功能，近年來更廣被使用在各大專案、公司之中，例如：yahoo、facebook、NHN 以及 Sony 等。</p>
+<a id="more"></a>
+<p>再介紹 Jenkins 之前必須先簡單說明持續整合(Contunuous Integration, CI)是什麼？</p>
+<h2 id="持續整合"><a href="#持續整合" class="headerlink" title="持續整合"></a>持續整合</h2><p>持續整合的概念最初是指在專案中由一個主要的電腦或伺服器來整合所有工程師的工作內容，並且要求每天都需要進行此一整合作業，以減少長時間累積的程式變動所帶來的影響。</p>
+<p>簡單來說就是透過<strong>自動化工具將個模組的程式碼從版本控制伺服器上下載下來，若程式碼有所變動便進行程式碼編譯並測試</strong>，如果出問題可以馬上通知工程師進行修正。</p>
+<p>而我們需要達到持續整合勢必需要一個工具能將平常手動的操作(像是：從版本控制伺服器下載程式碼、將程式碼編譯最後進行測試等動作)轉為自動，而 Jenkins 即是一個不錯的選擇。</p>
+<h2 id="Jenkins-簡介"><a href="#Jenkins-簡介" class="headerlink" title="Jenkins 簡介"></a>Jenkins 簡介</h2><p>Jenkins 是一個非常老牌的持續整合工具且是一個基於<code>MIT License</code>的開放原始碼專案，於 2011 年一月由相同為 CI Tool 的 Hudson 專案所分支而來，原本 Hudson 名稱以及商標則為 Oracle 的管理模式，因此受到許多自由社群開發者的歡迎。</p>
+<p>因為 Jenkins 擁有眾多使用者，讓它擁有許多 plugin 可以使用；而根據 <a href="http://imod.github.io/jenkins-stats/" target="_blank" rel="noopener">jenkins-stats</a> 統計，至今約有 500 多種 plugin 專來的支援，正式的 Jenkins server 安裝次數也超過 4 萬次，並有超過一百萬個 Build Jobs 運作其上。</p>
+<h2 id="Jeknins-安裝"><a href="#Jeknins-安裝" class="headerlink" title="Jeknins 安裝"></a>Jeknins 安裝</h2><p>Jenkins 是一套由<code>Java</code>所開發的，它只需要<code>Java Runtime Environment (JRE)</code>就可以順利執行，拜 Java 跨平台的特性所賜，各大主流作業系統都能夠輕易安裝 JRE，也因此 Jenkins 能夠支援夠種主流系統。</p>
+<p>以下將提供兩種安裝方式：</p>
+<ol>
+<li>GUI 安裝方式</li>
+<li>CLI 安裝方式</li>
+</ol>
+<h3 id="GUI-安裝方式"><a href="#GUI-安裝方式" class="headerlink" title="GUI 安裝方式"></a>GUI 安裝方式</h3><p>Jenkins GUI 安裝方式非常簡單，因為官方提供了非常方便的一鍵安裝檔，可以直接至 <a href="https://jenkins.io/" target="_blank" rel="noopener">Jenkins 官方網站</a> 下載安裝即可。</p>
+<h3 id="CLI-安裝方式"><a href="#CLI-安裝方式" class="headerlink" title="CLI 安裝方式"></a>CLI 安裝方式</h3><p>Jenkins 官方雖然提供了非常方便的一鍵安裝，但若遇到無 GUI 介面的作業系統，即會非常的不方便，因此以下將會使用 CLI 說明如何安裝。</p>
+<h4 id="安裝環境"><a href="#安裝環境" class="headerlink" title="安裝環境"></a>安裝環境</h4><p>環境硬體規格如下：</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Specs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>Intel® Core™2 Quad CPU Q9400 @ 2.66GHz × 4</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>4 GB</td>
+</tr>
+<tr>
+<td>Disk</td>
+<td>500 GB</td>
+</tr>
+</tbody>
+</table>
+<p>而作業系統部分以下兩種作業系統版本皆測試過皆可安裝：</p>
+<ul>
+<li>Ubuntu 12.04 64位元</li>
+<li>Ubuntu 14.04 64位元</li>
+</ul>
+<p>因為 Jeknins 是由 Java 所撰寫，因此需要安裝 Java，而 Java 安裝將不贊述。而我測試環境的 Java 版本如下：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> java -version</span><br><span class="line">java version "1.7.0_79"</span><br><span class="line">OpenJDK Runtime Environment (IcedTea 2.5.5) (7u79-2.5.5-0ubuntu0.14.04.2)</span><br><span class="line">OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)</span><br></pre></td></tr></table></figure></p>
+<h4 id="開始安裝"><a href="#開始安裝" class="headerlink" title="開始安裝"></a>開始安裝</h4><p>CLI 安裝方式也很簡單，僅需幾個指令即可：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-get update &amp;&amp; apt-get upgrade</span><br><span class="line"><span class="meta">$</span> wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -</span><br><span class="line"><span class="meta">$</span> sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ &gt; /etc/apt/sources.list.d/jenkins.list'</span><br><span class="line"><span class="meta">$</span> sudo apt-get update</span><br><span class="line"><span class="meta">$</span> sudo apt-get install jenkins</span><br></pre></td></tr></table></figure></p>
+<p>安裝完成後，即可打開瀏覽器<code>http://&lt;host ip address&gt;:8080</code>即可。</p>
+<p><img src="/images/jenkins-introduction-and-install-images/jenkins-homepage.png" alt="Jenkins Dashboard"></p>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://jenkins.io/" target="_blank" rel="noopener">Jenkins 官方</a></li>
+<li><a href="http://www.books.com.tw/products/0010596579" target="_blank" rel="noopener">CI (Continuous integration) 關鍵技術：使用 Jenkins</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2016/09/11/jenkins-introduction-and-install/" data-id="cjydrq2ur0007ws2nalgw3ig8" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2016/09/11/jenkins-introduction-and-install/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2016/09/11/jenkins-introduction-and-install/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2016/10/07/ceph-crush-introduction/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    CEPH 資料分散：CRUSH 演算法與一致性 Hash
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2016/04/27/haproxy-installation/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">使用 HAProxy 實現負載平衡</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#持續整合"><span class="toc-number">1.</span> <span class="toc-text">持續整合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Jenkins-簡介"><span class="toc-number">2.</span> <span class="toc-text">Jenkins 簡介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Jeknins-安裝"><span class="toc-number">3.</span> <span class="toc-text">Jeknins 安裝</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#GUI-安裝方式"><span class="toc-number">3.1.</span> <span class="toc-text">GUI 安裝方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CLI-安裝方式"><span class="toc-number">3.2.</span> <span class="toc-text">CLI 安裝方式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">4.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2016/09/11/jenkins-introduction-and-install/';
+        
+        this.page.identifier = 'jenkins-introduction-and-install';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

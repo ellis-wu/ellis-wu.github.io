@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>使用 HAProxy 實現負載平衡 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="隨著網路服務的用量暴增，增加伺服器硬體設備已經無法解決問題，而為了可以擴充服務，負載平衡成為主流的技術。負載平衡除了分流能力之外，有另一個很大的好處就是可以提供高可用性(High Availability)，好讓你一台提供服務的主機失效，其他提供服務的主機可以繼續提供服務，降低斷線率。目前還使有很多大型網站都是使用典型的負載平衡架構，由一台 Switch 或 Proxy 接收來自網際網路的連線請求">
+<meta name="keywords" content="HAProxy,Load Balancer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 HAProxy 實現負載平衡">
+<meta property="og:url" content="http://ellis-wu.github.io/2016/04/27/haproxy-installation/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="隨著網路服務的用量暴增，增加伺服器硬體設備已經無法解決問題，而為了可以擴充服務，負載平衡成為主流的技術。負載平衡除了分流能力之外，有另一個很大的好處就是可以提供高可用性(High Availability)，好讓你一台提供服務的主機失效，其他提供服務的主機可以繼續提供服務，降低斷線率。目前還使有很多大型網站都是使用典型的負載平衡架構，由一台 Switch 或 Proxy 接收來自網際網路的連線請求">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/haproxy-installation-images/load-balancer-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 HAProxy 實現負載平衡">
+<meta name="twitter:description" content="隨著網路服務的用量暴增，增加伺服器硬體設備已經無法解決問題，而為了可以擴充服務，負載平衡成為主流的技術。負載平衡除了分流能力之外，有另一個很大的好處就是可以提供高可用性(High Availability)，好讓你一台提供服務的主機失效，其他提供服務的主機可以繼續提供服務，降低斷線率。目前還使有很多大型網站都是使用典型的負載平衡架構，由一台 Switch 或 Proxy 接收來自網際網路的連線請求">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/haproxy-installation-images/load-balancer-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-haproxy-installation" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/haproxy-installation-images/load-balancer-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            使用 HAProxy 實現負載平衡
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2016/04/27/haproxy-installation/">
+            <time datetime="2016-04-26T16:00:00.000Z" itemprop="datePublished">2016-04-27</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Linux/">Linux</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/HAProxy/">HAProxy</a>, <a class="tag-link" href="/tags/Load-Balancer/">Load Balancer</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>隨著網路服務的用量暴增，增加伺服器硬體設備已經無法解決問題，而為了可以擴充服務，負載平衡成為主流的技術。負載平衡除了分流能力之外，有另一個很大的好處就是可以提供高可用性(High Availability)，好讓你一台提供服務的主機失效，其他提供服務的主機可以繼續提供服務，降低斷線率。目前還使有很多大型網站都是使用典型的負載平衡架構，由一台 Switch 或 Proxy 接收來自網際網路的連線請求，然後分散給後面提供服務的伺服器叢集，藉此提高服務能處理龐大的連線數與客戶端的請求。</p>
+<p><strong>因此，可以透過軟體的方式來達到附載平衡的效果。因此本篇教學選用較為主流的 HAProxy 來實作負載平衡的功能。</strong></p>
+<a id="more"></a>
+<h2 id="什麼是-HAProxy"><a href="#什麼是-HAProxy" class="headerlink" title="什麼是 HAProxy ?"></a>什麼是 HAProxy ?</h2><p>HAPorxy 為一自由、免費、開放原始碼的軟體。是一種高效能的 Load Balance/Reverse Proxy，具有多種平衡演算法，以及具有強大狀態檢查功能，能確保客戶端(client)所送出的請求(request)導向至能正常提供服務的伺服器。其運作方式同於 L4-L7 負載平衡設備。</p>
+<p>HAPorxy 是一個基於 TCP 與 HTTP 負載平衡軟體。其特性如下：</p>
+<ul>
+<li>安全；</li>
+<li>易於架設；</li>
+<li>功能强大(支援 cookie track、 header rewrite 等等)；</li>
+<li>此外系統提供簡顯易懂的系統監控以及統計報表畫面，管理者可清晰了解目前系統整體服務以及運行狀況。</li>
+</ul>
+<h2 id="HAProxy-安裝"><a href="#HAProxy-安裝" class="headerlink" title="HAProxy 安裝"></a>HAProxy 安裝</h2><p>以下將會介紹HAProxy v1.5+ 在<code>Ubuntu</code>上的安裝方式。</p>
+<p>安裝 HAProxy 十分容易，只需要透過<code>apt</code>就可以安裝完成，但在<code>Ubuntu 14.04</code>以後，無法安裝 HAProxy v1.5+ 的版本。因此，透過<code>PPA</code>新增 HAProxy v1.5+ 至<code>apt</code> repository 之中：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo add-apt-repository ppa:vbernat/haproxy-1.5</span><br><span class="line"><span class="meta">$</span> sudo apt-get update</span><br><span class="line"><span class="meta">$</span> sudo apt-get install -y haproxy</span><br></pre></td></tr></table></figure>
+<blockquote class="colorquote info"><p>若要裝 v1.6 版本，請自行將後方版本號做變更即可，指令如下：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo add-apt-repository ppa:vbernat/haproxy-1.6</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>安裝完成後，可以使用以下指令確認版本號：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> haproxy -v</span><br></pre></td></tr></table></figure></p>
+<h2 id="HAProxy-設定"><a href="#HAProxy-設定" class="headerlink" title="HAProxy 設定"></a>HAProxy 設定</h2><p>編輯並加入以下資訊至<code>/etc/haproxy/haproxy.cfg</code>：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">listen www-balancer</span><br><span class="line">    bind <span class="number">0.0</span>.<span class="number">0.0</span>:<span class="number">9090</span></span><br><span class="line">    balance roundrobin</span><br><span class="line">    server  web1 <span class="number">0.0</span>.<span class="number">0.0</span>:<span class="number">9000</span> check weight <span class="number">1</span> maxconn -<span class="number">1</span></span><br><span class="line">    server  web2 <span class="number">0.0</span>.<span class="number">0.0</span>:<span class="number">9001</span> check weight <span class="number">1</span> maxconn -<span class="number">1</span></span><br><span class="line"></span><br><span class="line">listen stats</span><br><span class="line">    bind <span class="number">0.0</span>.<span class="number">0.0</span>:<span class="number">8888</span></span><br><span class="line">    mode http</span><br><span class="line">    stats enable</span><br><span class="line">    stats hide-<span class="keyword">version</span></span><br><span class="line">    stats realm Haproxy\ Statistics</span><br><span class="line">    stats uri /</span><br><span class="line">    <span class="comment"># Change your account and password</span></span><br><span class="line">    stats auth <span class="tag">&lt;account&gt;</span>:<span class="tag">&lt;password&gt;</span></span><br><span class="line">    stats refresh <span class="number">10s</span></span><br></pre></td></tr></table></figure></p>
+<blockquote class="colorquote info"><p>HAProxy 提供網頁儀表板；可以透果此網頁儀表板查看整個負載平衡群組之狀況。因此，請將設定檔中的<code>&lt;account&gt;</code>與<code>&lt;password&gt;</code>更換為自己的帳號與密碼。</p>
+</blockquote>
+<p>設定完成後，重啟 HAProxy：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo service haproxy restart</span><br></pre></td></tr></table></figure></p>
+<p>完成後，可以透過瀏覽器存取 <a href="http://&lt;your host&gt;:8888" target="_blank" rel="noopener">HAProxy 儀表板</a>。</p>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://blog.toright.com/posts/3967/%E5%AF%8C%E4%BA%BA%E7%94%A8-l4-switch%EF%BC%8C%E7%AA%AE%E4%BA%BA%E7%94%A8-linux-haproxy%EF%BC%81.html" target="_blank" rel="noopener">富人用 L4 Switch，窮人用 Linux HAProxy！</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2016/04/27/haproxy-installation/" data-id="cjydrq2un0002ws2nq6scfpb5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2016/04/27/haproxy-installation/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2016/04/27/haproxy-installation/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2016/09/11/jenkins-introduction-and-install/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    持續整合工具 Jenkins 介紹與安裝
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2016/04/13/jenkins-intergation-xctest/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">使用 Jenkins 搭建 iOS 持續整合環境</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什麼是-HAProxy"><span class="toc-number">1.</span> <span class="toc-text">什麼是 HAProxy ?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HAProxy-安裝"><span class="toc-number">2.</span> <span class="toc-text">HAProxy 安裝</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HAProxy-設定"><span class="toc-number">3.</span> <span class="toc-text">HAProxy 設定</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">4.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2016/04/27/haproxy-installation/';
+        
+        this.page.identifier = 'haproxy-installation';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>Alexa Skill 結合 Auth0 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="在上一篇Alexa Skills Kit 新手教學介紹了怎麼建立一個簡單的 Alexa Skill 的範例。若有考慮到要將 Skill 產品化應該都會遇到一些問題，就是當我對 Echo 或 APP 說了一指令希望它去打開臥室的門，它要怎麼知道該使用者的臥室是哪個裝置進而讓它去執行開門的動作呢？這時候我們需要借助Account Linking這個功能，這是在使用者啟用這個技能時，需要使用者授權讓該技">
+<meta name="keywords" content="Amazon,Alexa,Auth0">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Alexa Skill 結合 Auth0">
+<meta property="og:url" content="http://ellis-wu.github.io/2019/07/22/ask-with-auth0/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="在上一篇Alexa Skills Kit 新手教學介紹了怎麼建立一個簡單的 Alexa Skill 的範例。若有考慮到要將 Skill 產品化應該都會遇到一些問題，就是當我對 Echo 或 APP 說了一指令希望它去打開臥室的門，它要怎麼知道該使用者的臥室是哪個裝置進而讓它去執行開門的動作呢？這時候我們需要借助Account Linking這個功能，這是在使用者啟用這個技能時，需要使用者授權讓該技">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/ask-with-auth0-images/ask-with-auth0-logo.png">
+<meta property="og:updated_time" content="2019-08-20T02:44:43.323Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Alexa Skill 結合 Auth0">
+<meta name="twitter:description" content="在上一篇Alexa Skills Kit 新手教學介紹了怎麼建立一個簡單的 Alexa Skill 的範例。若有考慮到要將 Skill 產品化應該都會遇到一些問題，就是當我對 Echo 或 APP 說了一指令希望它去打開臥室的門，它要怎麼知道該使用者的臥室是哪個裝置進而讓它去執行開門的動作呢？這時候我們需要借助Account Linking這個功能，這是在使用者啟用這個技能時，需要使用者授權讓該技">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/ask-with-auth0-images/ask-with-auth0-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-ask-with-auth0" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/ask-with-auth0-images/ask-with-auth0-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            Alexa Skill 結合 Auth0
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2019/07/22/ask-with-auth0/">
+            <time datetime="2019-07-21T16:00:00.000Z" itemprop="datePublished">2019-07-22</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/AWS/">AWS</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Alexa/">Alexa</a>, <a class="tag-link" href="/tags/Amazon/">Amazon</a>, <a class="tag-link" href="/tags/Auth0/">Auth0</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>在上一篇<a href="/2019/07/19/alexa-skills-kit/" title="Alexa Skills Kit 新手教學">Alexa Skills Kit 新手教學</a>介紹了怎麼建立一個簡單的 Alexa Skill 的範例。若有考慮到要將 Skill 產品化應該都會遇到一些問題，就是當我對 Echo 或 APP 說了一指令希望它去打開臥室的門，它要怎麼知道該使用者的臥室是哪個裝置進而讓它去執行開門的動作呢？這時候我們需要借助<code>Account Linking</code>這個功能，這是在使用者啟用這個技能時，需要使用者授權讓該技能擁有存取使用者資訊的功能。當我們能存取使用者的一些資訊後，就可以去查詢使用者的臥室是哪個裝置，進而去控制裝置的動作。而<code>Account Linking</code>是使用<code>OAuth 2.0</code>協定來進行的，你當然可以選擇自己建立 OAuth Server 或者使用其他第三方服務。而本文將使用 <a href="https://auth0.com/" target="_blank" rel="noopener">Auth0</a> 結合 Alexa Skill。</p>
+<a id="more"></a>
+<h2 id="使用流程與架構"><a href="#使用流程與架構" class="headerlink" title="使用流程與架構"></a>使用流程與架構</h2><p>使用者若要使用客製化技能，是有些前置動作要完成的。使用者在使用客製化技能前，需要在 Alexa APP 或網頁來啟用該技能，而我們的 skill 會設定必須進行 account linking。所以當使用者在 APP 或網頁點擊 <strong>[Enable]</strong> 後，會彈出一個登入/註冊網站，當使用者輸入資料後並點擊登入/註冊按鈕後，會將該資料儲存至 Auth0 之中。成功後，使用者就會在 APP 或網頁看到該 skill 已經成功啟用且連結了。<br><img src="/images/ask-with-auth0-images/enable-skill-overview.png" alt="Enable Skill Overview"></p>
+<p>前置步驟完成，我們可以來看看當使用者使用客製化技能的流程。當使用者說出客製化技能的指令，一樣會將語音串流傳送至 AVS，而 AVS 將語音轉換為文字再進行分析，分析後則觸發該技能的 Lambda 函式。而 Lambda 的 Intent Handler 觸發後，會先跟 Auth0 取得該使用者的基本資料(不包含 Device UUID)。再從取得的基本資料拿到該使用者在 Auth0 中的 ID，我們利用該 ID 從 Auth0 提供的 Management API 查詢該使用者的詳細資訊。最後再從使用者的詳細資訊取得它的 Device UUID。接著可以利用這些資訊往第三方服務(MQTT 等服務)傳送，告知該 Device UUID 該執行動作了。而使用者家中的裝置接收到後則作出對應的動作。<br><img src="/images/ask-with-auth0-images/ask-with-auth0-overview.png" alt="ASK with Auth0 Overview"></p>
+<h2 id="設定-Auth0"><a href="#設定-Auth0" class="headerlink" title="設定 Auth0"></a>設定 Auth0</h2><p>要設定 Auth0 當然要先擁有 <a href="https://auth0.com/" target="_blank" rel="noopener">Auth0</a> 的帳號。請先自行註冊 Auth0 帳號後再進行以下步驟。</p>
+<h3 id="建立與設定-Auth0-Application"><a href="#建立與設定-Auth0-Application" class="headerlink" title="建立與設定 Auth0 Application"></a>建立與設定 Auth0 Application</h3><p>登入後，點擊 <strong>[CREATE APPLICATION]</strong> 先創建一個 application。<br><img src="/images/ask-with-auth0-images/auth0-dashboard.png" alt="Auth0 Dashboard"></p>
+<p>接著，輸入 application 的 <strong>[Name]</strong> 並且選擇類型為 <strong>[Machine to Machine Applications]</strong>。<br><img src="/images/ask-with-auth0-images/auth0-app-informations.png" alt="Auht0 Application Informations"></p>
+<p>輸入完成後，點擊 <strong>[CREATE]</strong>。</p>
+<p>接著會要選則這個 application 他能存取與使用的 API。下拉式選單選擇 <strong>[Auth0 Management API]</strong> 後，再將 <strong>scopes</strong> 選擇 <strong>[all]</strong>。<br><img src="/images/ask-with-auth0-images/auth0-app-auth.png" alt="Auth0 Application Authorize"></p>
+<blockquote class="colorquote danger"><p>本文是範例教學，所以將所有 API 權限打開。請依照自己的使用情境選擇要開起來些 API 權限。</p>
+</blockquote>
+<p>選擇完畢後，點擊 <strong>[AUTHORIZE]</strong>。完成後會看到類似以下畫面。<br><img src="/images/ask-with-auth0-images/auth0-app-created.png" alt="Auth0 Application"></p>
+<p>接下來，要對這個 application 設定一些配置。切換上方 tab 至 <strong>Settings</strong>，找到 <strong>Token Endpoint Authentication Method</strong> 並設定成 <strong>[Basic]</strong>。<br><img src="/images/ask-with-auth0-images/auth0-token-endpoint-auth-method.png" alt="Auth0 Token Eenpoint Authentication Method"></p>
+<p>再來，在設定頁面最下方，會看到 <strong>[Show Advances Settings]</strong> 點擊並將 tab 切換至 <strong>OAuth</strong>，再來找到 <strong>JsonWebToken Signature Algorithm</strong> 欄位並選擇 <strong>[HS256]</strong>。<br><img src="/images/ask-with-auth0-images/auth0-jsonWebToken-signature-algorithm.png" alt="Auth0 JsonWebToken Signature Algorithm"></p>
+<p>完成後，點擊下方 <strong>[SAVE CHANGE]</strong> 按鈕。</p>
+<h3 id="Options-Social-Logins"><a href="#Options-Social-Logins" class="headerlink" title="(Options) Social Logins"></a>(Options) Social Logins</h3><p>這是使用者在登入時，可以選擇使用其他第三方帳號(Facebook、Google 與 Amazon 等等)的方式登入。每個第三方帳號的設定都不盡相同，這邊就看自己的需求自行設定。而本文這邊就不進行說明，若想要設定請參考<a href="https://www.jovo.tech/tutorials/alexa-account-linking-auth0#social-logins" target="_blank" rel="noopener">這裏</a>。</p>
+<h2 id="設定-Alexa-Skill"><a href="#設定-Alexa-Skill" class="headerlink" title="設定 Alexa Skill"></a>設定 Alexa Skill</h2><p>這邊要開始 Alexa Skill 與 Auth0 之間的設定。我們先打開自己建立的 Alexa Skill 頁面，並點選左邊的 <strong>Account Linking</strong>。<br><img src="/images/ask-with-auth0-images/alexa-skill-account-linking.png" alt="Alexa Skill Account Linking"></p>
+<p>如上圖所示，將 <strong>Do you allow users to create an account or link to an existing account with you?</strong> 的開關打<strong>開</strong>。而 <strong>Allow users to enable skill without account linking</strong> 選項則是看個人需求，如果選擇關閉；則在啟用這個技能時就會直接請求 Account Linking。</p>
+<p>接來來，在 <strong>Authorization Grant Type</strong> 選項選擇 <strong>[Auth Code Grant]</strong>。選擇後，會看到下方有好幾項設定，而這些設定都可以從 Auth0 那邊取得：</p>
+<ul>
+<li><strong>Authorization URL</strong>：在剛剛於 Auth0 建立的 application 中的 <strong>[Settings]</strong> → <strong>[Advanced Settings]</strong> → <strong>[Endpoints]</strong> → <strong>[OAuth Authorization URL]</strong>。</li>
+<li><strong>Access Token URI</strong>：在剛剛於 Auth0 建立的 application 中的 <strong>[Settings]</strong> → <strong>[Advanced Settings]</strong> → <strong>[Endpoints]</strong> → <strong>[OAuth Token URL]</strong>。</li>
+<li><strong>Client ID</strong>：在剛剛於 Auth0 建立的 application 中的 <strong>[Settings]</strong> → <strong>[Client ID]</strong>。</li>
+<li><strong>Client Secret</strong>在剛剛於 Auth0 建立的 application 中的 <strong>[Settings]</strong> → <strong>[Client Secret]</strong>。</li>
+<li><strong>Client Authentication Scheme</strong>：依然選擇 <strong>[HTTP Basic]</strong>。</li>
+<li><strong>Scope</strong>：分別新增並輸入<code>openid</code>、<code>offline_access</code>、<code>profile</code>與<code>email</code>。</li>
+<li><strong>Domain List</strong>：新增並輸入<code>cdn.auth0.com</code>。</li>
+</ul>
+<p>以上資訊輸入完成後，就可以按下上方 <strong>[Save]</strong> 按鈕。而輸入完資訊類似下面這樣。<br><img src="/images/ask-with-auth0-images/ask-account-linking-setting.png" alt="Alexa Skill Account Linking Setting"></p>
+<p>接下來，請記住 Alexa Skill Account Linking 下方的 <strong>Redirect URLs</strong> 的三個網址。我們要將它設定至 Auth0 上。這是當 Auth0 成功授權登入後，會重新導回這個 URL。在剛剛於 Auth0 建立的 application 中的 <strong>[Settings]</strong> 找到 <strong>Allowed Callback URLs</strong> 欄位，輸入剛剛記下來的三個 <strong>Redirect URLs</strong> 並以<strong>逗號</strong>區隔。<br><img src="/images/ask-with-auth0-images/auth0-redirect-urls.png" alt="Auth0 Redirect"></p>
+<p>輸入完後，請得點選下方的 <strong>[SAVE CHANGE]</strong> 按鈕。</p>
+<h2 id="第一次測試"><a href="#第一次測試" class="headerlink" title="第一次測試"></a>第一次測試</h2><p>我們透過 <a href="https://alexa.amazon.com/" target="_blank" rel="noopener">Amazon Alexa 網頁版</a>進行測試，當然也可以從 Alexa APP 進行測試，但在台灣是下載不到 Alexa APP 的，所以要切換至別的國家才有辦法下載。</p>
+<p>登入後，我們點選左邊導航列的 <strong>Skills</strong>，再點選右上的 <strong>Your Skills</strong>，可以查詢你所擁有的 Skill。這邊可以看到 <strong>Enable Skill</strong> 會看到自己建立的客製化技能。<br><img src="/images/ask-with-auth0-images/ask-my-skill.png" alt="My Custom Skill"></p>
+<p>可以看到這個 skill 是 <strong>Enable</strong> 的狀態且下方顯示 <strong>Account linking required</strong>，這代表我們 account linking 是有啟用的狀態。我們可以點選旁邊的 <strong>SETTINGS</strong> 按鈕。點擊後我們會看到類似以下畫面，這邊可以進行 account linking 的動作。<br><img src="/images/ask-with-auth0-images/account-linking.png" alt="Account Linking"></p>
+<blockquote class="colorquote info"><p>【重要觀念】<br>Alexa Skill 的啟用與 account linking 是分開的，意思是可以單獨啟用該技能卻不進行 account linking。若不進行 account linking 的話，該使用者還是能使用該 skill，但在 lambda 則無法取得該使用者的<code>access token</code> 來取得該使用者的個人資料。</p>
+</blockquote>
+<p>點擊右邊小小的 <strong>[Link Account]</strong> 按鈕，就會轉跳至 Auth0 提供的登入畫面，如下圖所示。這時候我們先暫時不作任何動作，因為我們需要更改一下 Auth0 登入頁面讓使用者在進行 account linking 時輸入裝置的 UUID，以及修改 skill 的 Lambda 程式讓使用者使用客製化技能時，能確認是否已經進行 account linking，若已經進行 account linking 則能取得使用者的裝置 UUID。<br><img src="/images/ask-with-auth0-images/account-linking-login-page.png" alt="Account Linking Login Page"></p>
+<h2 id="修改-Auth0-Login-畫面"><a href="#修改-Auth0-Login-畫面" class="headerlink" title="修改 Auth0 Login 畫面"></a>修改 Auth0 Login 畫面</h2><p>真的不得不說 Auth0 整合得很完善也很方便，它提供了<code>Universal Login</code>讓開發者能夠快速建立登入授權驗證網頁。而<code>Universal Login</code>它提供了三種選擇：</p>
+<ol>
+<li>Lock</li>
+<li>Lock (passwordless)</li>
+<li>Custom Login Form</li>
+</ol>
+<p>其中 Lock 與 Custom Login Form 之間最大的差異是 Lock 都是透過 Auth0 提供的 library 來建立登入授權驗證網頁，其它提供了登入授權驗證網頁的樣板，因此畫面較為固定，若需在網頁上新增欄位讓使用者填寫的話，則要依照它的方式來新增欄位。而 Custom Login Form 則是登入授權驗證網頁的 html 與 css 都可以自行修改，而透過<code>script</code>載入 Auth0 的函式讓開發者能進行登入與註冊的動作。</p>
+<p>這邊我們使用 Custom Login Form 來建立自己的登入授權驗證網頁。首先，到 Auth0 Dashboard 點選左邊的 <strong>Universal Login</strong>，然後切換中間 tab 至 <strong>Login</strong>，再來將中間 <strong>Customize Login Page</strong> 的開關開啟，再將下方的 <strong>DEFAULT TEMPLATES</strong> 下拉式選單選擇至 <strong>[Custom Login Form]</strong>。<br><img src="/images/ask-with-auth0-images/auth0-universal-login.png" alt="Auth0 Universal Login"></p>
+<p>選擇完後，會看到程式碼與一開始不同，接著我們稍微來修改一下程式碼。先加入一個 Device UUID 的輸入框：<br><figure class="highlight html"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"form-group"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">"name"</span>&gt;</span>Password<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"password"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"form-control"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">id</span>=<span class="string">"password"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">placeholder</span>=<span class="string">"Enter your password"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 加入下面程式 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"form-group"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">"name"</span>&gt;</span>Device UUID<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"deviceUUID"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"form-control"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">id</span>=<span class="string">"deviceUUID"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">placeholder</span>=<span class="string">"Enter your device UUID"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>再來是在註冊時，我們要將 Device UUID 儲存至 Auth0 中。而 Auth0 在註冊時，我們可以將 Device UUID 存入至使用者的<code>user_metadata</code>中，之後再透過 API 將其取出。所以，修改程式碼中<code>signup</code>函式：<br><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">signup</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> email = <span class="built_in">document</span>.getElementById(<span class="string">'email'</span>).value;</span><br><span class="line">    <span class="keyword">var</span> password = <span class="built_in">document</span>.getElementById(<span class="string">'password'</span>).value;</span><br><span class="line">    <span class="keyword">var</span> deviceUUID = <span class="built_in">document</span>.getElementById(<span class="string">'deviceUUID'</span>).value;</span><br><span class="line"></span><br><span class="line">    webAuth.redirect.signupAndLogin(&#123;</span><br><span class="line">      connection: databaseConnection,</span><br><span class="line">      email: email,</span><br><span class="line">      password: password,</span><br><span class="line">      user_metadata: &#123;</span><br><span class="line">        deviceUUID: deviceUUID,</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (err) displayError(err);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>完成後，可以點擊上面的 <strong>[Preview]</strong> 按鈕來看一下目前的登入授權驗證網頁。<br><img src="/images/ask-with-auth0-images/auth0-login-preview.png" alt="Auth0 Login Preview"></p>
+<p>確認沒問題後，就可以按下方的 <strong>[SAVE CHANGES]</strong> 按鈕來儲存。</p>
+<h2 id="修改-Lambda-程式碼"><a href="#修改-Lambda-程式碼" class="headerlink" title="修改 Lambda 程式碼"></a>修改 Lambda 程式碼</h2><p>當使用者說出「Alexa, tell myskill open the door」時，會發客製化技能的 Lambda 執行。而這時候，在 Lambda 中要去抓取該使用者的 Device UUID 並往第三方服務發送一個 action 的訊息，而客戶的裝置為該 Device UUID 則執行動作。</p>
+<p>為了達到上述的情況，我們需要修改 Alexa Skill 上 Lambda 的程式碼。請參考下方的程式碼進行修改，其中有些參數請更改為自己的資訊。我們可以從 Lambda 觸發時的 handler 取得<code>access token</code>(只有成功 account linking 時才能取得到)，再透過該<code>access token</code>呼叫 Auth0 的 userinfo API 取得使用者的資訊，但 Response 中的使用者資訊並不包含我們儲存<code>device UUID</code>的<code>user_metadata</code>。這是因為 userinfo API 取得的資料格式必須遵照<code>OpenID</code>，而<code>user_metadata</code>並不屬於<code>OpenID</code>的 scope。</p>
+<p>因此，我們利用剛剛從 userinfo API 取得到的 user ID，再透過 Auth0 的 Management API 來查詢該使用者的資訊，並取得<code>user_metadata</code>的 device UUID。在使用 Management API 查詢使用者之前，需要先向 Auht0 取得 token 來存取 Management，否則會無法存取。<br><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> DoorIntentHandler = &#123;</span><br><span class="line">  canHandle(handlerInput) &#123;</span><br><span class="line">    <span class="keyword">return</span> handlerInput.requestEnvelope.request.type === <span class="string">'IntentRequest'</span></span><br><span class="line">      &amp;&amp; handlerInput.requestEnvelope.request.intent.name === <span class="string">'HelloWorldIntent'</span>;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="keyword">async</span> handle(handlerInput) &#123;</span><br><span class="line">    <span class="comment">// Get user access token</span></span><br><span class="line">    <span class="keyword">const</span> &#123; accessToken &#125; = handlerInput.requestEnvelope.context.System.user;</span><br><span class="line">    <span class="keyword">let</span> speechText = <span class="string">''</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!accessToken) &#123;</span><br><span class="line">      <span class="comment">// If didn't have access token then ask user link account</span></span><br><span class="line">      speechText = <span class="string">'Please link your account'</span>;</span><br><span class="line">      <span class="keyword">return</span> handlerInput.responseBuilder.speak(speechText).getResponse();        </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// Using userinfo API to get user informations with OpenID format</span></span><br><span class="line">      <span class="keyword">let</span> userInfoOptions = &#123;</span><br><span class="line">        headers: &#123;</span><br><span class="line">          authorization: <span class="string">'Bearer '</span> + accessToken</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="keyword">const</span> userInfoResponse = <span class="keyword">await</span> axios.get(<span class="string">'https://&#123;your auth0 application url&#125;/userinfo'</span>, userInfoOptions);</span><br><span class="line">      <span class="keyword">const</span> userID = userInfoResponse.data.sub; <span class="comment">// Get the user UUID</span></span><br><span class="line">    </span><br><span class="line">      <span class="comment">// Get token for search the user informations to get user's device UUID</span></span><br><span class="line">      <span class="keyword">let</span> tokenPayload = &#123;</span><br><span class="line">        <span class="string">'client_id'</span>: <span class="string">'&#123;your client ID&#125;'</span>,</span><br><span class="line">        <span class="string">'client_secret'</span>: <span class="string">'&#123;your client secret&#125;'</span>,</span><br><span class="line">        <span class="string">'audience'</span>: <span class="string">'https://&#123;your auth0 application url&#125;/api/v2/'</span>,</span><br><span class="line">        <span class="string">'grant_type'</span>: <span class="string">'client_credentials'</span></span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="keyword">let</span> tokenHeaders = &#123; </span><br><span class="line">        headers: &#123; </span><br><span class="line">          <span class="string">'content-type'</span>: <span class="string">'application/json'</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="keyword">const</span> tokenResponse = <span class="keyword">await</span> axios.post(<span class="string">'https://&#123;your auth0 application url&#125;/oauth/token'</span>, tokenPayload, tokenHeaders);</span><br><span class="line">      <span class="keyword">const</span> token = tokenResponse.data.access_token;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Get device UUID in user informations via Auth0 Management API</span></span><br><span class="line">      <span class="keyword">let</span> deviceHeader = &#123; </span><br><span class="line">        headers: &#123;</span><br><span class="line">          authorization: <span class="string">'Bearer '</span> + token</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="keyword">const</span> deviceResponse = <span class="keyword">await</span> axios.get(<span class="string">`https://&#123;your auth0 application url&#125;/api/v2/users/<span class="subst">$&#123;userID&#125;</span>`</span>, deviceHeader);</span><br><span class="line">      <span class="keyword">const</span> deviceID = deviceResponse.data.user_metadata.deviceUUID;</span><br><span class="line">            </span><br><span class="line">      <span class="comment">// Do something in there</span></span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">      speechText = <span class="string">`Open <span class="subst">$&#123;deviceID&#125;</span> Door`</span>;</span><br><span class="line">      <span class="keyword">return</span> handlerInput.responseBuilder.speak(speechText).reprompt(speechText).getResponse();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>因為我們有用<code>axios</code>來呼叫 API，所以先在程式碼最上方加入這行：<br><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> axios = <span class="built_in">require</span>(<span class="string">'axios'</span>);</span><br></pre></td></tr></table></figure></p>
+<p>接著，在<code>package.json</code>中加入<code>axios</code>：<br><figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"hello-world"</span>,</span><br><span class="line">  <span class="attr">"version"</span>: <span class="string">"1.1.0"</span>,</span><br><span class="line">  <span class="attr">"description"</span>: <span class="string">"alexa utility for quickly building skills"</span>,</span><br><span class="line">  <span class="attr">"main"</span>: <span class="string">"index.js"</span>,</span><br><span class="line">  <span class="attr">"scripts"</span>: &#123;</span><br><span class="line">    <span class="attr">"test"</span>: <span class="string">"echo \"Error: no test specified\" &amp;&amp; exit 1"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"author"</span>: <span class="string">"Amazon Alexa"</span>,</span><br><span class="line">  <span class="attr">"license"</span>: <span class="string">"ISC"</span>,</span><br><span class="line">  <span class="attr">"dependencies"</span>: &#123;</span><br><span class="line">    <span class="attr">"ask-sdk-core"</span>: <span class="string">"^2.6.0"</span>,</span><br><span class="line">    <span class="attr">"ask-sdk-model"</span>: <span class="string">"^1.18.0"</span>,</span><br><span class="line">    <span class="attr">"aws-sdk"</span>: <span class="string">"^2.326.0"</span>,</span><br><span class="line">    <span class="attr">"axios"</span>: <span class="string">"^0.18.0"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>完成後，點擊上方 <strong>[Save]</strong> 並且 <strong>[Deploy]</strong>。</p>
+<h2 id="開始測試！"><a href="#開始測試！" class="headerlink" title="開始測試！"></a>開始測試！</h2><p>部署完成後，依樣可以切換上方的導航列至 <strong>[Test]</strong>。首先，我們先測試看看若未進行 account linking，是否會回覆我們 “Please link your account”。<br><img src="/images/ask-with-auth0-images/test-for-no-account-linking.png" alt="Test Scenario 1"></p>
+<p>接著使用 Alexa APP 或網站進行 account linking 來測試看看結果如何。點擊 <strong>[Link Account]</strong> 按鈕。<br><img src="/images/ask-with-auth0-images/account-linking.png" alt="Account Linking"></p>
+<p>點擊後，會轉跳至我們剛剛設定的登入授權驗證網頁，並輸入帳號密碼與裝置的 UUID。輸入完成後按下 <strong>[Sign Up]</strong> 按鈕。<br><img src="/images/ask-with-auth0-images/auth0-login-website.png" alt="Auth0 Login Website"></p>
+<p>完成後，若成功會看到該技能已經成功連結。<br><img src="/images/ask-with-auth0-images/skill-link-success.png" alt="Skill Link Success"></p>
+<p>我們可以到 Auth0 的 Dashboard 查看剛剛註冊的使用者，且可以看到<code>user_metadata</code>有儲存剛剛輸入的<code>deviceUUID</code>。<br><img src="/images/ask-with-auth0-images/auth0-user-info.png" alt="Auth0 User Informations"></p>
+<p>再來進行 account linking 後在測試一次看看結果。<br><img src="/images/ask-with-auth0-images/test-account-linking.png" alt="Test Scenario 2"></p>
+<p>這樣就大功告成拉！</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2019/07/22/ask-with-auth0/" data-id="cjzhqe3yi0000f12n3t4cej5c" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2019/07/22/ask-with-auth0/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2019/07/22/ask-with-auth0/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+    
+        <a href="/2019/07/19/alexa-skills-kit/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">Alexa Skills Kit 新手教學</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#使用流程與架構"><span class="toc-number">1.</span> <span class="toc-text">使用流程與架構</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#設定-Auth0"><span class="toc-number">2.</span> <span class="toc-text">設定 Auth0</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#建立與設定-Auth0-Application"><span class="toc-number">2.1.</span> <span class="toc-text">建立與設定 Auth0 Application</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Options-Social-Logins"><span class="toc-number">2.2.</span> <span class="toc-text">(Options) Social Logins</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#設定-Alexa-Skill"><span class="toc-number">3.</span> <span class="toc-text">設定 Alexa Skill</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第一次測試"><span class="toc-number">4.</span> <span class="toc-text">第一次測試</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改-Auth0-Login-畫面"><span class="toc-number">5.</span> <span class="toc-text">修改 Auth0 Login 畫面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改-Lambda-程式碼"><span class="toc-number">6.</span> <span class="toc-text">修改 Lambda 程式碼</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開始測試！"><span class="toc-number">7.</span> <span class="toc-text">開始測試！</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2019/07/22/ask-with-auth0/';
+        
+        this.page.identifier = 'ask-with-auth0';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

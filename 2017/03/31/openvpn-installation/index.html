@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>OpenVPN 手把手教學 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="虛擬私人網路(Virtual Private Network, VPN)為了解決跨區域之大型企業的網路連線與安全問題而衍生，VPN 在公用的網路架構(如：網際網路)上建立私有通道，而訊息透過私有通透進行傳送。VPN 可以利用已加密的通道協議(Tunneling Protocol)來達到保密、傳送端認證、訊息準確性等私人訊息安全效果。這種技術可以用不安全的網路(如：網際網路)來傳送可靠、安全的訊息。">
+<meta name="keywords" content="OpenVPN,VPN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenVPN 手把手教學">
+<meta property="og:url" content="http://ellis-wu.github.io/2017/03/31/openvpn-installation/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="虛擬私人網路(Virtual Private Network, VPN)為了解決跨區域之大型企業的網路連線與安全問題而衍生，VPN 在公用的網路架構(如：網際網路)上建立私有通道，而訊息透過私有通透進行傳送。VPN 可以利用已加密的通道協議(Tunneling Protocol)來達到保密、傳送端認證、訊息準確性等私人訊息安全效果。這種技術可以用不安全的網路(如：網際網路)來傳送可靠、安全的訊息。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/openvpn-installation-images/vpn-logo.jpg">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.798Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OpenVPN 手把手教學">
+<meta name="twitter:description" content="虛擬私人網路(Virtual Private Network, VPN)為了解決跨區域之大型企業的網路連線與安全問題而衍生，VPN 在公用的網路架構(如：網際網路)上建立私有通道，而訊息透過私有通透進行傳送。VPN 可以利用已加密的通道協議(Tunneling Protocol)來達到保密、傳送端認證、訊息準確性等私人訊息安全效果。這種技術可以用不安全的網路(如：網際網路)來傳送可靠、安全的訊息。">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/openvpn-installation-images/vpn-logo.jpg">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-openvpn-installation" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/openvpn-installation-images/vpn-logo.jpg" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            OpenVPN 手把手教學
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/03/31/openvpn-installation/">
+            <time datetime="2017-03-30T16:00:00.000Z" itemprop="datePublished">2017-03-31</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Linux/">Linux</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/OpenVPN/">OpenVPN</a>, <a class="tag-link" href="/tags/VPN/">VPN</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>虛擬私人網路(Virtual Private Network, VPN)為了解決跨區域之大型企業的網路連線與安全問題而衍生，VPN 在公用的網路架構(如：網際網路)上建立私有通道，而訊息透過私有通透進行傳送。VPN 可以利用已加密的通道協議(Tunneling Protocol)來達到保密、傳送端認證、訊息準確性等私人訊息安全效果。這種技術可以用不安全的網路(如：網際網路)來傳送可靠、安全的訊息。需要注意的是，沒有加密的 VPN 訊息依然有被竊取的危險。而 OpenVPN 無疑是 Linux 下開源 VPN 的先鋒，其提供了良好的效能友善的 GUI，而本文將介紹如何在 Ubuntu 上安裝 OpenVPN，但不使用 GUI 介面。</p>
+<a id="more"></a>
+<h2 id="安裝環境"><a href="#安裝環境" class="headerlink" title="安裝環境"></a>安裝環境</h2><p>本次安裝在 Google Compute Engine(GCE) 上租用一台虛擬機並作為 VPN Server，在實體機上使用 KVM 建立一台虛擬機作為 VPN Client。硬體規格與環境資訊如下：</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>VPN Server (GCE)</th>
+<th>VPN Client (On-premises)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Ubuntu 16.04 LTS Server</td>
+<td>Ubuntu 16.04 LTS Server</td>
+</tr>
+<tr>
+<td>vCPU</td>
+<td>1 vCPU</td>
+<td>1 vCPU</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>4 GB</td>
+<td>4 GB</td>
+</tr>
+<tr>
+<td>Disk</td>
+<td>10 GB</td>
+<td>50 GB</td>
+</tr>
+<tr>
+<td>Private IP</td>
+<td>ens4, 10.140.0.3</td>
+<td>enp0s8, 172.20.3.19</td>
+</tr>
+<tr>
+<td>Public IP</td>
+<td>35.194.174.185</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<blockquote class="colorquote info"><ul>
+<li><p>以下 OpenVPN 安裝步驟僅適用於 Ubuntu，其他作業系統如何安裝 OpenVPN 請參考：</p>
+<ol>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-an-openvpn-server-on-debian-8" target="_blank" rel="noopener">How To Set Up an OpenVPN Server on Debian 8</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-setup-and-configure-an-openvpn-server-on-centos-7" target="_blank" rel="noopener">Hot To Setup and Configure an OpenVPN Server on CentOS 7</a></li>
+</ol>
+</li>
+<li><p>以上連結都未使用 ccd(client-config-dir)，Server 端無法連到 Client 端。因此，需要再額外設定 ccd。</p>
+</li>
+</ul>
+</blockquote>
+<h2 id="安裝-OpenVPN"><a href="#安裝-OpenVPN" class="headerlink" title="安裝 OpenVPN"></a>安裝 OpenVPN</h2><h3 id="安裝套件"><a href="#安裝套件" class="headerlink" title="安裝套件"></a>安裝套件</h3><p>首先，安裝<code>openvpn</code>與<code>easy-rsa</code>套件：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get install -y openvpn easy-rsa</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="建立-CA-範本與資料夾"><a href="#建立-CA-範本與資料夾" class="headerlink" title="建立 CA 範本與資料夾"></a>建立 CA 範本與資料夾</h3><p>接下來，複製<code>easy-rsa</code>的範本：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> make-cadir ~/openvpn-ca</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ~/openvpn-ca</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">build-ca     build-key         build-key-server  clean-all      openssl-0.9.6.cnf  pkitool      vars</span><br><span class="line">build-dh     build-key-pass    build-req         inherit-inter  openssl-0.9.8.cnf  revoke-full  whichopensslcnf</span><br><span class="line">build-inter  build-key-pkcs12  build-req-pass    list-crl       openssl-1.0.0.cnf  sign-req</span><br></pre></td></tr></table></figure></p>
+<h3 id="設定-CA-資訊"><a href="#設定-CA-資訊" class="headerlink" title="設定 CA 資訊"></a>設定 CA 資訊</h3><p>複製完成並確認檔案後，編輯<code>vars</code>，並設定 CA 資訊：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">export <span class="attr">KEY_COUNTRY=</span><span class="string">"TW"</span></span><br><span class="line">export <span class="attr">KEY_PROVINCE=</span><span class="string">"Taiwan"</span></span><br><span class="line">export <span class="attr">KEY_CITY=</span><span class="string">"Taipei"</span></span><br><span class="line">export <span class="attr">KEY_ORG=</span><span class="string">"inwinSTACK"</span></span><br><span class="line">export <span class="attr">KEY_EMAIL=</span><span class="string">"ellis.w@inwinstack.com"</span></span><br><span class="line">export <span class="attr">KEY_OU=</span><span class="string">"R&amp;D"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># X509 Subject Field</span></span><br><span class="line">export <span class="attr">KEY_NAME=</span><span class="string">"server"</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="建立-CA"><a href="#建立-CA" class="headerlink" title="建立 CA"></a>建立 CA</h3><p>根據剛剛設定的 CA 資訊來建立自己的憑證：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ~/openvpn-ca</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">source</span> vars</span></span><br><span class="line">NOTE: If you run ./clean-all, I will be doing a rm -rf on /home/ellis_w/openvpn-ca/keys</span><br></pre></td></tr></table></figure></p>
+<p>接下來，清除目錄中所有的金鑰(key)，確保等下產生的金鑰(key)不會重複等問題：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./clean-all</span></span><br></pre></td></tr></table></figure></p>
+<p>清楚完後，使用<code>./build-ca</code>來製作 CA，接下來只要一直按 <strong>【Enter】</strong> 即可：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./build-ca</span></span><br><span class="line">Generating a 2048 bit RSA private key</span><br><span class="line">............................+++</span><br><span class="line">.......................................................................................................................................................+++</span><br><span class="line">writing new private key to 'ca.key'</span><br><span class="line">-----</span><br><span class="line">You are about to be asked to enter information that will be incorporated</span><br><span class="line">into your certificate request.</span><br><span class="line">What you are about to enter is what is called a Distinguished Name or a DN.</span><br><span class="line">There are quite a few fields but you can leave some blank</span><br><span class="line">For some fields there will be a default value,</span><br><span class="line">If you enter '.', the field will be left blank.</span><br><span class="line">-----</span><br><span class="line">Country Name (2 letter code) [TW]:</span><br><span class="line">State or Province Name (full name) [Taiwan]:</span><br><span class="line">Locality Name (eg, city) [Taipei]:</span><br><span class="line">Organization Name (eg, company) [inwinSTACK]:</span><br><span class="line">Organizational Unit Name (eg, section) [R&amp;D]:</span><br><span class="line">Common Name (eg, your name or your server\'s hostname) [inwinSTACK CA]:</span><br><span class="line">Name [server]:</span><br><span class="line">Email Address [ellis.w@inwinstack.com]:</span><br></pre></td></tr></table></figure></p>
+<h3 id="建立-Server-端相關檔案"><a href="#建立-Server-端相關檔案" class="headerlink" title="建立 Server 端相關檔案"></a>建立 Server 端相關檔案</h3><p>接下來，接下來製作 Server 的 CA 與金鑰(key)：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./build-key-server server</span></span><br><span class="line">Generating a 2048 bit RSA private key</span><br><span class="line">............................+++</span><br><span class="line">...........................................+++</span><br><span class="line">writing new private key to 'server.key'</span><br><span class="line">-----</span><br><span class="line">You are about to be asked to enter information that will be incorporated</span><br><span class="line">into your certificate request.</span><br><span class="line">What you are about to enter is what is called a Distinguished Name or a DN.</span><br><span class="line">There are quite a few fields but you can leave some blank</span><br><span class="line">For some fields there will be a default value,</span><br><span class="line">If you enter '.', the field will be left blank.</span><br><span class="line">-----</span><br><span class="line">Country Name (2 letter code) [TW]:</span><br><span class="line">State or Province Name (full name) [Taiwan]:</span><br><span class="line">Locality Name (eg, city) [Taipei]:</span><br><span class="line">Organization Name (eg, company) [inwinSTACK]:</span><br><span class="line">Organizational Unit Name (eg, section) [R&amp;D]:</span><br><span class="line">Common Name (eg, your name or your server\'s hostname) [server]:</span><br><span class="line">Name [server]:</span><br><span class="line">Email Address [ellis.w@inwinstack.com]:</span><br><span class="line"></span><br><span class="line">Please enter the following 'extra' attributes</span><br><span class="line">to be sent with your certificate request</span><br><span class="line">A challenge password []:</span><br><span class="line">An optional company name []:</span><br><span class="line">Using configuration from /home/ellis_w/openvpn-ca/openssl-1.0.0.cnf</span><br><span class="line">Check that the request matches the signature</span><br><span class="line">Signature ok</span><br><span class="line">The Subject\'s Distinguished Name is as follows</span><br><span class="line">countryName           :PRINTABLE:'TW'</span><br><span class="line">stateOrProvinceName   :PRINTABLE:'Taiwan'</span><br><span class="line">localityName          :PRINTABLE:'Taipei'</span><br><span class="line">organizationName      :PRINTABLE:'inwinSTACK'</span><br><span class="line">organizationalUnitName:T61STRING:'R&amp;D'</span><br><span class="line">commonName            :PRINTABLE:'server'</span><br><span class="line">name                  :PRINTABLE:'server'</span><br><span class="line">emailAddress          :IA5STRING:'ellis.w@inwinstack.com'</span><br><span class="line">Certificate is to be certified .until Mar 29 06:28:48 2027 GMT (3650 days)</span><br><span class="line">Sign the certificate? [y/n]:y</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">1 out of 1 certificate requests certified, commit? [y/n]y</span><br><span class="line">Write out database with 1 new entries</span><br><span class="line">Data Base Updated</span><br></pre></td></tr></table></figure></p>
+<p>接著，為了增加 OpenVPN 的安全性，製作<code>diffie hellman</code>。此步驟會需要一些時間：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./build-dh</span></span><br><span class="line">Generating DH parameters, 2048 bit long safe prime, generator 2</span><br><span class="line">This is going to take a long .time</span><br><span class="line"><span class="meta">#</span><span class="bash"> ...(以下省略)</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="建立-Client-端的密鑰-key"><a href="#建立-Client-端的密鑰-key" class="headerlink" title="建立 Client 端的密鑰(key)"></a>建立 Client 端的密鑰(key)</h3><p>Server 端所需要的 CA 與密鑰(key)都已經準備完成後。再來就是建立 Client 端的密鑰(key)。可以在 Client 端產生 Client 的密鑰(key)。但為了方便，直接在 Server 端建立 Client 端的密鑰(key)：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./build-key client1</span></span><br><span class="line">Generating a 2048 bit RSA private key</span><br><span class="line">................+++</span><br><span class="line">...............................................................................................+++</span><br><span class="line">writing new private key to 'client1.key'</span><br><span class="line">-----</span><br><span class="line">You are about to be asked to enter information that will be incorporated</span><br><span class="line">into your certificate request.</span><br><span class="line">What you are about to enter is what is called a Distinguished Name or a DN.</span><br><span class="line">There are quite a few fields but you can leave some blank</span><br><span class="line">For some fields there will be a default value,</span><br><span class="line">If you enter '.', the field will be left blank.</span><br><span class="line">-----</span><br><span class="line">Country Name (2 letter code) [TW]:</span><br><span class="line">State or Province Name (full name) [Taiwan]:</span><br><span class="line">Locality Name (eg, city) [Taipei]:</span><br><span class="line">Organization Name (eg, company) [inwinSTACK]:</span><br><span class="line">Organizational Unit Name (eg, section) [R&amp;D]:</span><br><span class="line">Common Name (eg, your name or your server\'s hostname) [client1]:</span><br><span class="line">Name [server]:</span><br><span class="line">Email Address [ellis.w@inwinstack.com]:</span><br><span class="line"></span><br><span class="line">Please enter the following 'extra' attributes</span><br><span class="line">to be sent with your certificate request</span><br><span class="line">A challenge password []:</span><br><span class="line">An optional company name []:</span><br><span class="line">Using configuration from /home/ellis_w/openvpn-ca/openssl-1.0.0.cnf</span><br><span class="line">Check that the request matches the signature</span><br><span class="line">Signature ok</span><br><span class="line">The Subject\'s Distinguished Name is as follows</span><br><span class="line">countryName           :PRINTABLE:'TW'</span><br><span class="line">stateOrProvinceName   :PRINTABLE:'Taiwan'</span><br><span class="line">localityName          :PRINTABLE:'Taipei'</span><br><span class="line">organizationName      :PRINTABLE:'inwinSTACK'</span><br><span class="line">organizationalUnitName:T61STRING:'R&amp;D'</span><br><span class="line">commonName            :PRINTABLE:'client1'</span><br><span class="line">name                  :PRINTABLE:'server'</span><br><span class="line">emailAddress          :IA5STRING:'ellis.w@inwinstack.com'</span><br><span class="line">Certificate is to be certified .until Mar 29 06:59:08 2027 GMT (3650 days)</span><br><span class="line">Sign the certificate? [y/n]:y</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">1 out of 1 certificate requests certified, commit? [y/n]y</span><br><span class="line">Write out database with 1 new entries</span><br><span class="line">Data Base Updated</span><br></pre></td></tr></table></figure></p>
+<h3 id="設定-OpenVPN-Server"><a href="#設定-OpenVPN-Server" class="headerlink" title="設定 OpenVPN Server"></a>設定 OpenVPN Server</h3><p>當 Server 與 Client 的 CA 與密鑰(key)都產生完成後，可以開始設定 OpenVPN Server。</p>
+<p>複製 Server 需要的 CA 與密鑰(key)至<code>/etc/openvpn/</code>目錄底下：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ~/openvpn-ca/keys</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo cp ca.crt ca.key server.crt server.key dh2048.pem /etc/openvpn</span></span><br></pre></td></tr></table></figure></p>
+<p>接下來，需要準備 OpenVPN 的設定檔。因此解壓縮 OpenVPN 的 sample configuration 檔案，並複製到<code>/etc/openvpn/</code>目錄底下：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz | sudo tee /etc/openvpn/server.conf</span></span><br></pre></td></tr></table></figure></p>
+<p>完成後，開始設定 OpenVPN Server 的設定檔，主要修改<code>server.conf</code>中的以下部分，而其他設定資訊請依據各自情況進行設定：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 設定 VPN 透過 8081 Port</span></span><br><span class="line">port <span class="number">8081</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 更改為 tcp 並將 udp 註解起來</span></span><br><span class="line">proto tcp</span><br><span class="line">;proto udp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消註解並且修改網段</span></span><br><span class="line">push <span class="string">"route 10.140.0.0 255.255.255.0"</span></span><br><span class="line">push <span class="string">"route 172.20.3.0 255.255.255.0"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消註解並寫修改</span></span><br><span class="line">client-config-dir ccd</span><br><span class="line">route <span class="number">172.20</span>.<span class="number">3.0</span> <span class="number">255.255</span>.<span class="number">255.0</span></span><br></pre></td></tr></table></figure></p>
+<p>當<code>server.conf</code>設定好後，新增<code>ccd</code>目錄，並產生<code>client</code>檔案並加入<code>iroute</code>：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir -p /etc/openvpn/ccd</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">"iroute 172.20.3.0 255.255.255.0"</span> &gt; /etc/openvpn/ccd/client1</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="調整-OpenVPN-Serve-網路設定"><a href="#調整-OpenVPN-Serve-網路設定" class="headerlink" title="調整 OpenVPN Serve 網路設定"></a>調整 OpenVPN Serve 網路設定</h3><blockquote class="colorquote info"><ul>
+<li>此步驟可以依照自己的情況進行更改。</li>
+<li>正常情況下會設定防火牆是因為考慮到安全性，倘若有些應用需關閉防火牆，請自行關閉防火牆。</li>
+</ul>
+</blockquote>
+<p>當<code>server.conf</code>都設定完成後，再來要設定網路部分。首先要設定允許 IP forwarding，編輯<code>/etc/sysctl.conf</code>檔案，找到<code>net.ipv4.ip_forward</code>參數，將其<strong>取消註解</strong>：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line">net.ipv4.<span class="attr">ip_forward=</span><span class="number">1</span></span><br></pre></td></tr></table></figure></p>
+<p>完成後，退出並存檔。並輸入以下指令，使其重新讀取設定：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo sysctl -p</span></span><br></pre></td></tr></table></figure></p>
+<p>接下來設定防火牆，而在設定防火牆前，先找到自己主機的 public network interface：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ip route | grep default</span></span><br><span class="line">default via 10.140.0.1 dev ens4</span><br></pre></td></tr></table></figure></p>
+<p>這代表我的 public network interface 的名稱為<code>ens4</code>。知道 public network interface 名稱後，編輯<code>/etc/ufw/before.rules</code>，並增加以下設定：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># START OPENVPN RULES</span></span><br><span class="line"><span class="comment"># NAT table rules</span></span><br><span class="line">*nat</span><br><span class="line">:POSTROUTING ACCEPT [<span class="number">0</span>:<span class="number">0</span>]</span><br><span class="line"><span class="comment"># Allow traffic from OpenVPN client to wlp11s0 (change to the interface you discovered!)</span></span><br><span class="line">-A POSTROUTING -s <span class="number">10.8</span>.<span class="number">0.0</span>/<span class="number">8</span> -o ens4 -j MASQUERADE</span><br><span class="line">COMMIT</span><br><span class="line"><span class="comment"># END OPENVPN RULES</span></span><br></pre></td></tr></table></figure></p>
+<p>再來編輯<code>/etc/default/ufw</code>，將<code>DEFAULT_FORWARD_POLICY</code>的參數設定為<code>ACCEPT</code>：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="attr">DEFAULT_FORWARD_POLICY=</span><span class="string">"ACCEPT"</span></span><br></pre></td></tr></table></figure></p>
+<p>接下來，打開 OpenVPN 設定的 Port 與 Protocol，並重新啟動防火牆並啟動設定：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo ufw allow 8081/tcp</span></span><br><span class="line">Rules updated</span><br><span class="line">Rules updated (v6)</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ufw allow OpenSSH</span></span><br><span class="line">Rules updated</span><br><span class="line">Rules updated (v6)</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ufw <span class="built_in">disable</span></span></span><br><span class="line">Firewall stopped and disabled on system startup</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ufw <span class="built_in">enable</span></span></span><br><span class="line">Command may disrupt existing ssh connections. Proceed with operation (y|n)? y</span><br><span class="line">Firewall is active and enabled on system startup</span><br></pre></td></tr></table></figure></p>
+<h3 id="啟動-OpenVPN-服務"><a href="#啟動-OpenVPN-服務" class="headerlink" title="啟動 OpenVPN 服務"></a>啟動 OpenVPN 服務</h3><p>以上設定完成後，可以啟動 OpenVPN Server，並設定為開機時會自動啟動 OpenVPN Server 服務：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl start openvpn@server</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl <span class="built_in">enable</span> openvpn@server</span></span><br></pre></td></tr></table></figure></p>
+<p>可以使用以下指令查看，是否有成功啟動 OpenVPN Server：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl status openvpn@server</span></span><br><span class="line">● openvpn@server.service - OpenVPN connection to server</span><br><span class="line">   Loaded: loaded (/lib/systemd/system/openvpn@.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Tue 2018-03-27 08:18:33 UTC; 1h 0min ago</span><br><span class="line">     Docs: man:openvpn(8)</span><br><span class="line">           https://community.openvpn.net/openvpn/wiki/Openvpn23ManPage</span><br><span class="line">           https://community.openvpn.net/openvpn/wiki/HOWTO</span><br><span class="line">  Process: 30905 ExecStart=/usr/sbin/openvpn --daemon ovpn-%i --status /run/openvpn/%i.status 10 --cd /etc/openvpn --script-security 2 --config /etc/openvpn/%i.conf --writepid /run/openvpn/%i</span><br><span class="line"> Main PID: 30907 (openvpn)</span><br><span class="line">   CGroup: /system.slice/system-openvpn.slice/openvpn@server.service</span><br><span class="line">           └─30907 /usr/sbin/openvpn --daemon ovpn-server --status /run/openvpn/server.status 10 --cd /etc/openvpn --script-security 2 --config /etc/openvpn/server.conf --writepid /run/openvp</span><br><span class="line"></span><br><span class="line">Mar 27 08:27:03 instance-3 ovpn-server[30907]: MULTI: Learn: 172.20.3.19 -&gt; client1/122.146.93.152:26820</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 VERIFY OK: depth=1, C=TW, ST=Taiwan, L=Taipei, O=inwinSTACK, OU=R&amp;D, CN=inwinSTACK CA, name=server, emailAddress=el</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 VERIFY OK: depth=0, C=TW, ST=Taiwan, L=Taipei, O=inwinSTACK, OU=R&amp;D, CN=client1, name=server, emailAddress=ellis.w@</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 Data Channel Encrypt: Cipher 'BF-CBC' initialized with 128 bit key</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 WARNING: this cipher\'s block size is less than 128 bit (64 bit).  Consider using a --cipher with a larger block siz</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 Data Channel Encrypt: Using 160 bit message hash 'SHA1' for HMAC authentication</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 Data Channel Decrypt: Cipher 'BF-CBC' initialized with 128 bit key</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 WARNING: this cipher\'s block size is less than 128 bit (64 bit).  Consider using a --cipher with a larger block siz</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 Data Channel Decrypt: Using 160 bit message hash 'SHA1' for HMAC authentication</span><br><span class="line">Mar 27 09:18:39 instance-3 ovpn-server[30907]: client1/122.146.93.152:26820 Control Channel: TLSv1.2, cipher TLSv1/SSLv3 DHE-RSA-AES256-GCM-SHA384, 2048 bit RSA</span><br></pre></td></tr></table></figure></p>
+<p>可以透過以下指令查看 OpenVPN 建立了一張虛擬網卡<code>tun0</code>：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ip addr show tun0</span></span><br><span class="line">3: tun0: &lt;POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 100</span><br><span class="line">    link/none</span><br><span class="line">    inet 10.8.0.1 peer 10.8.0.2/32 scope global tun0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::7187:f47e:c174:728f/64 scope link flags 800</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure></p>
+<h2 id="OpenVPN-Client-測試"><a href="#OpenVPN-Client-測試" class="headerlink" title="OpenVPN Client 測試"></a>OpenVPN Client 測試</h2><h3 id="安裝-OpenVPN-Client"><a href="#安裝-OpenVPN-Client" class="headerlink" title="安裝 OpenVPN Client"></a>安裝 OpenVPN Client</h3><blockquote class="colorquote info"><p>使用 Linux 做為 Client 端，若其他裝置(如：Windows, Mac OS X, Android, iOS)，請參考 <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-an-openvpn-server-on-ubuntu-16-04#step-12-install-the-client-configuration" target="_blank" rel="noopener">How To Set Up an OpenVPN Server on Ubunut 16.04 #Step 12:Install the Client Configuration </a></p>
+</blockquote>
+<p>當 OpenVPN Server 執行後，再來到 Client 端中安裝 OpenVPN：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get install -y openvpn</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="設定-OpenVPN-Client"><a href="#設定-OpenVPN-Client" class="headerlink" title="設定 OpenVPN Client"></a>設定 OpenVPN Client</h3><p>首先，Client 會需要用到剛剛在 Server 端建立的<code>ca.crt</code>與 client 密鑰(key)與 CA。因此，我們必須先將這三份文件給複製至 Client 端：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="keyword">for</span> file <span class="keyword">in</span> ca.crt client1.crt client1.key; <span class="keyword">do</span></span></span><br><span class="line">    sudo scp &lt;username&gt;@&lt;server ip&gt;:/home/&lt;username&gt;/openvpn-ca/keys/$&#123;file&#125; /etc/openvpn/</span><br><span class="line">  done</span><br></pre></td></tr></table></figure></p>
+<p>Client 所需的密鑰(key)與 CA 複製完成後，接下來複製 Client 的範例文件：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/</span></span><br></pre></td></tr></table></figure></p>
+<p>接著開始配置<code>client.conf</code>，主要修改以下部分：<br><figure class="highlight crmsh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 將 udp 換成 tcp</span></span><br><span class="line">proto tcp</span><br><span class="line">;proto udp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 設定 OpenVPN Server IP 與 Port</span></span><br><span class="line">remote <span class="number">35.194</span>.<span class="number">174.185</span> <span class="number">8081</span></span><br><span class="line">;remote my-server-<span class="number">2</span> <span class="number">1194</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 找到 ca, cert, key 設定，並修改檔案名稱</span></span><br><span class="line">ca ca.crt</span><br><span class="line">cert client1.crt</span><br><span class="line">key client1.key</span><br></pre></td></tr></table></figure></p>
+<h3 id="啟動-OpenVPN-Client"><a href="#啟動-OpenVPN-Client" class="headerlink" title="啟動 OpenVPN Client"></a>啟動 OpenVPN Client</h3><p>以上設定完成後，可以啟動 OpenVPN Client，並設定為開機時會自動啟動 OpenVPN Client 服務：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl start openvpn@client</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl <span class="built_in">enable</span> openvpn@client</span></span><br></pre></td></tr></table></figure></p>
+<p>若 OpenVPN Client 成功啟動，則會自動建立一張 tun0 網卡與 Server 連接：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ip addr show tun0</span></span><br><span class="line">4: tun0: &lt;POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 100</span><br><span class="line">    link/none</span><br><span class="line">    inet 10.8.0.6 peer 10.8.0.5/32 scope global tun0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure></p>
+<p>亦可以使用以下指令查看，OpenVPN Client 是否有任何錯誤資訊：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl status openvpn@client</span></span><br><span class="line">● openvpn@client.service - OpenVPN connection to client</span><br><span class="line">   Loaded: loaded (/lib/systemd/system/openvpn@.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Tue 2018-03-27 06:30:55 UTC; 2h 50min ago</span><br><span class="line">     Docs: man:openvpn(8)</span><br><span class="line">           https://community.openvpn.net/openvpn/wiki/Openvpn23ManPage</span><br><span class="line">           https://community.openvpn.net/openvpn/wiki/HOWTO</span><br><span class="line"> Main PID: 21276 (openvpn)</span><br><span class="line">   CGroup: /system.slice/system-openvpn.slice/openvpn@client.service</span><br><span class="line">           └─21276 /usr/sbin/openvpn --daemon ovpn-client --status /run/openvpn/client.status 10 --cd /etc/openvpn --script-security 2 --config /etc/openvpn/client.conf --writepid /run/openvp</span><br><span class="line"></span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: ++ Certificate has EKU (str) TLS Web Server Authentication, expects TLS Web Server Authentication</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: VERIFY EKU OK</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: VERIFY OK: depth=0, C=TW, ST=Taiwan, L=Taipei, O=inwinSTACK, OU=R&amp;D, CN=server, name=server, emailAddress=ellis.w@inwinstack.com</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: Data Channel Encrypt: Cipher 'BF-CBC' initialized with 128 bit key</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: WARNING: this cipher\'s block size is less than 128 bit (64 bit).  Consider using a --cipher with a larger block size.</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: Data Channel Encrypt: Using 160 bit message hash 'SHA1' for HMAC authentication</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: Data Channel Decrypt: Cipher 'BF-CBC' initialized with 128 bit key</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: WARNING: this cipher\'s block size is less than 128 bit (64 bit).  Consider using a --cipher with a larger block size.</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: Data Channel Decrypt: Using 160 bit message hash 'SHA1' for HMAC authentication</span><br><span class="line">Mar 27 09:18:39 single-node1 ovpn-client[21276]: Control Channel: TLSv1.2, cipher TLSv1/SSLv3 DHE-RSA-AES256-GCM-SHA384, 2048 bit RSA</span><br></pre></td></tr></table></figure></p>
+<h3 id="測試連線"><a href="#測試連線" class="headerlink" title="測試連線"></a>測試連線</h3><p>以上都沒有錯誤，就代表 VPN 以連線成功。可以透過<code>icmp</code>驗證是否有成功連線：</p>
+<p>在 Client 端，<code>icmp</code> 至 Server IP Address：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ping 10.140.0.3 -c 4</span></span><br><span class="line">PING 10.140.0.3 (10.140.0.3) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.140.0.3: icmp_seq=1 ttl=64 time=5.68 ms</span><br><span class="line">64 bytes from 10.140.0.3: icmp_seq=2 ttl=64 time=6.14 ms</span><br><span class="line">64 bytes from 10.140.0.3: icmp_seq=3 ttl=64 time=5.89 ms</span><br><span class="line">64 bytes from 10.140.0.3: icmp_seq=4 ttl=64 time=5.93 ms</span><br><span class="line"></span><br><span class="line">--- 10.140.0.3 ping statistics ---</span><br><span class="line">4 packets transmitted, 4 received, 0% packet loss, time 3007ms</span><br><span class="line">rtt min/avg/max/mdev = 5.681/5.914/6.143/0.172 ms</span><br></pre></td></tr></table></figure></p>
+<p>在 Server 端，<code>icmp</code> 至 Client IP Address：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ping 172.20.3.19 -c 4</span></span><br><span class="line">PING 172.20.3.19 (172.20.3.19) 56(84) bytes of data.</span><br><span class="line">64 bytes from 172.20.3.19: icmp_seq=1 ttl=64 time=5.50 ms</span><br><span class="line">64 bytes from 172.20.3.19: icmp_seq=2 ttl=64 time=5.62 ms</span><br><span class="line">64 bytes from 172.20.3.19: icmp_seq=3 ttl=64 time=6.00 ms</span><br><span class="line">64 bytes from 172.20.3.19: icmp_seq=4 ttl=64 time=5.57 ms</span><br><span class="line"></span><br><span class="line">--- 172.20.3.19 ping statistics ---</span><br><span class="line">4 packets transmitted, 4 received, 0% packet loss, time 3003ms</span><br><span class="line">rtt min/avg/max/mdev = 5.507/5.678/6.005/0.213 ms</span><br></pre></td></tr></table></figure></p>
+<p>若以上<code>icmp</code>都能通代表，VPN tunnel 已經成功建立，大功告成！!!</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2017/03/31/openvpn-installation/" data-id="cjydrq2wl003nws2nzcgyivuo" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2017/03/31/openvpn-installation/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2017/03/31/openvpn-installation/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2017/11/27/kubernetes-on-mesos/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    Kubernetes on Mesos
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2017/03/17/mac-create-usb-boot/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">Mac OS X 製作 USB 開機碟</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝環境"><span class="toc-number">1.</span> <span class="toc-text">安裝環境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-OpenVPN"><span class="toc-number">2.</span> <span class="toc-text">安裝 OpenVPN</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安裝套件"><span class="toc-number">2.1.</span> <span class="toc-text">安裝套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立-CA-範本與資料夾"><span class="toc-number">2.2.</span> <span class="toc-text">建立 CA 範本與資料夾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-CA-資訊"><span class="toc-number">2.3.</span> <span class="toc-text">設定 CA 資訊</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立-CA"><span class="toc-number">2.4.</span> <span class="toc-text">建立 CA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立-Server-端相關檔案"><span class="toc-number">2.5.</span> <span class="toc-text">建立 Server 端相關檔案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立-Client-端的密鑰-key"><span class="toc-number">2.6.</span> <span class="toc-text">建立 Client 端的密鑰(key)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-OpenVPN-Server"><span class="toc-number">2.7.</span> <span class="toc-text">設定 OpenVPN Server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#調整-OpenVPN-Serve-網路設定"><span class="toc-number">2.8.</span> <span class="toc-text">調整 OpenVPN Serve 網路設定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#啟動-OpenVPN-服務"><span class="toc-number">2.9.</span> <span class="toc-text">啟動 OpenVPN 服務</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenVPN-Client-測試"><span class="toc-number">3.</span> <span class="toc-text">OpenVPN Client 測試</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安裝-OpenVPN-Client"><span class="toc-number">3.1.</span> <span class="toc-text">安裝 OpenVPN Client</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#設定-OpenVPN-Client"><span class="toc-number">3.2.</span> <span class="toc-text">設定 OpenVPN Client</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#啟動-OpenVPN-Client"><span class="toc-number">3.3.</span> <span class="toc-text">啟動 OpenVPN Client</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#測試連線"><span class="toc-number">3.4.</span> <span class="toc-text">測試連線</span></a></li></ol></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2017/03/31/openvpn-installation/';
+        
+        this.page.identifier = 'openvpn-installation';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

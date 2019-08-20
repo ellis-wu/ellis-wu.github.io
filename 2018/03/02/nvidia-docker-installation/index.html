@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>NVIDIA Docker v2 安裝 | Ellis&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="2017 年 11 月 NVIDIA 已將 NVIDIA Docker v2 的版本合併(merged)至 NVIDIA/nvidia-docker 的 repository，這意味著 v2 會逐漸取代 v1。 而根據官方的說明，v1 與 v2 差異如下：  不需要封裝的 Docker CLI 以及獨立的背景程式(daemon) GPU 的隔離現在透過環境變數NVIDIA_VISIBLE_DEVI">
+<meta name="keywords" content="Docker,NVIDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NVIDIA Docker v2 安裝">
+<meta property="og:url" content="http://ellis-wu.github.io/2018/03/02/nvidia-docker-installation/index.html">
+<meta property="og:site_name" content="Ellis&#39;s Blog">
+<meta property="og:description" content="2017 年 11 月 NVIDIA 已將 NVIDIA Docker v2 的版本合併(merged)至 NVIDIA/nvidia-docker 的 repository，這意味著 v2 會逐漸取代 v1。 而根據官方的說明，v1 與 v2 差異如下：  不需要封裝的 Docker CLI 以及獨立的背景程式(daemon) GPU 的隔離現在透過環境變數NVIDIA_VISIBLE_DEVI">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://ellis-wu.github.io/images/nvidia-docker-installation-images/nvidia-docker-logo.png">
+<meta property="og:updated_time" content="2019-07-22T02:21:17.798Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NVIDIA Docker v2 安裝">
+<meta name="twitter:description" content="2017 年 11 月 NVIDIA 已將 NVIDIA Docker v2 的版本合併(merged)至 NVIDIA/nvidia-docker 的 repository，這意味著 v2 會逐漸取代 v1。 而根據官方的說明，v1 與 v2 差異如下：  不需要封裝的 Docker CLI 以及獨立的背景程式(daemon) GPU 的隔離現在透過環境變數NVIDIA_VISIBLE_DEVI">
+<meta name="twitter:image" content="http://ellis-wu.github.io/images/nvidia-docker-installation-images/nvidia-docker-logo.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/favicon.ico" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">Ellis&#39;s Blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">Ellis Wu</h2>
+            <h3 id="title">軟體工程師</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Taipei, Taiwan</span>
+            <a id="follow" target="_blank" href="https://github.com/ellis-wu/">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                21
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                32
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/ellis-wu" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.facebook.com/imelliswu" target="_blank" title="facebook" class=tooltip>
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://www.linkedin.com/in/%E8%B1%90%E5%90%8D-%E5%90%B3-3280a2135/" target="_blank" title="linkedin" class=tooltip>
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-nvidia-docker-installation" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            
+	
+		<img src="/images/nvidia-docker-installation-images/nvidia-docker-logo.png" class="article-banner" />
+	
+
+
+
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            NVIDIA Docker v2 安裝
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/03/02/nvidia-docker-installation/">
+            <time datetime="2018-03-01T16:00:00.000Z" itemprop="datePublished">2018-03-02</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/技術/">技術</a><i class="fa fa-angle-right"></i><a class="article-category-link" href="/categories/技術/Container/">Container</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Docker/">Docker</a>, <a class="tag-link" href="/tags/NVIDIA/">NVIDIA</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            <p>2017 年 11 月 NVIDIA 已將 NVIDIA Docker v2 的版本合併(merged)至 <a href="https://github.com/NVIDIA/nvidia-docker" target="_blank" rel="noopener">NVIDIA/nvidia-docker</a> 的 repository，這意味著 v2 會逐漸取代 v1。</p>
+<p>而根據官方的說明，v1 與 v2 差異如下：</p>
+<ul>
+<li>不需要封裝的 Docker CLI 以及獨立的背景程式(daemon)</li>
+<li>GPU 的隔離現在透過環境變數<code>NVIDIA_VISIBLE_DEVICES</code></li>
+<li>任何的 Docker image 都可以啟動 GPU 支援，不只是基於官方的 CUDA image</li>
+<li>Ubuntu 與 CentOS 都有 Package repositories，意味著安裝更為簡單與方便</li>
+<li>基於<code>libnvidia-container</code>來重新實現</li>
+</ul>
+<p>而本文將介紹如何使用 NVIDIA Docker v2 來讓容器使用 GPU。</p>
+<a id="more"></a>
+<h2 id="安裝環境"><a href="#安裝環境" class="headerlink" title="安裝環境"></a>安裝環境</h2><p>環境資訊：</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Spec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Ubunut 16.04 LTS</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>4 CPU</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>16 GB</td>
+</tr>
+<tr>
+<td>Disk</td>
+<td>1 TB</td>
+</tr>
+</tbody>
+</table>
+<h2 id="事情準備"><a href="#事情準備" class="headerlink" title="事情準備"></a>事情準備</h2><p>安裝前需要確認以下幾點：</p>
+<ul>
+<li>GNU/Linux x86_64 with kernel version &gt; 3.10</li>
+<li>Docker &gt;= 1.12</li>
+<li>NVIDIA GPU with Architecture &gt; Fermi (2.1)</li>
+<li><a href="http://www.nvidia.com/object/unix.html" target="_blank" rel="noopener">NVIDIA drivers</a> ~= 361.93 (untested on older versions)</li>
+</ul>
+<blockquote class="colorquote warning"><p>Docker 版本要安裝 stable release 的版本，請參考 <a href="https://docs.docker.com/release-notes/docker-ce/" target="_blank" rel="noopener">這裡</a>。</p>
+</blockquote>
+<h2 id="安裝-Docker-CE"><a href="#安裝-Docker-CE" class="headerlink" title="安裝 Docker CE"></a>安裝 Docker CE</h2><p>首先，需要在環境中安裝<code>Docker CE</code>，若使用 Docker 官方提供的快速安裝腳本的話，安裝的<code>Docker CE</code>版本並非 stable 的版本。所以 nvidia-docker 可能並未支援。因此，若要安裝 stable 的 Docker CE 請參考 <a href="/2018/03/01/docker-installation/" title="Docker CE 安裝">Docker CE 安裝</a>，這裡不再詳述如何安裝 <code>Docker CE</code>。</p>
+<h2 id="安裝-nvidia-docker"><a href="#安裝-nvidia-docker" class="headerlink" title="安裝 nvidia-docker"></a>安裝 nvidia-docker</h2><p>Docker CE 安裝完成後，接著可以開始安裝<code>nvidia-docker2</code>：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> apt-get install nvidia-384</span><br><span class="line"><span class="meta">$</span> docker volume ls -q -f driver=nvidia-docker | xargs -r -I&#123;&#125; -n1 docker ps -q -a -f volume=&#123;&#125; | xargs -r docker rm -f</span><br><span class="line"><span class="meta">$</span> apt-get purge -y nvidia-docker</span><br><span class="line"><span class="meta">$</span> curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add -</span><br><span class="line"><span class="meta">$</span> curl -s -L https://nvidia.github.io/nvidia-docker/ubuntu16.04/amd64/nvidia-docker.list | \</span><br><span class="line">    tee /etc/apt/sources.list.d/nvidia-docker.list</span><br><span class="line"><span class="meta">$</span> apt-get update</span><br><span class="line"><span class="meta">$</span> apt-get install -y nvidia-docker2</span><br><span class="line"><span class="meta">$</span> pkill -SIGHUP dockerd</span><br></pre></td></tr></table></figure></p>
+<p>安裝完成後，使用<code>nvidia-docker</code>指令確認是否安裝成功：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nvidia-docker version</span><br><span class="line">NVIDIA Docker: 2.0.3</span><br><span class="line">Client:</span><br><span class="line"> Version:      18.03.1-ce</span><br><span class="line"> API version:  1.37</span><br><span class="line"> Go version:   go1.9.5</span><br><span class="line"> Git commit:   9ee9f40</span><br><span class="line"> Built:        Thu Apr 26 07:17:20 2018</span><br><span class="line"> OS/Arch:      linux/amd64</span><br><span class="line"> Experimental: false</span><br><span class="line"> Orchestrator: swarm</span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line"> Engine:</span><br><span class="line">  Version:      18.03.1-ce</span><br><span class="line">  API version:  1.37 (minimum version 1.12)</span><br><span class="line">  Go version:   go1.9.5</span><br><span class="line">  Git commit:   9ee9f40</span><br><span class="line">  Built:        Thu Apr 26 07:15:30 2018</span><br><span class="line">  OS/Arch:      linux/amd64</span><br><span class="line">  Experimental: false</span><br></pre></td></tr></table></figure></p>
+<h2 id="驗證-nvidia-docker"><a href="#驗證-nvidia-docker" class="headerlink" title="驗證 nvidia-docker"></a>驗證 nvidia-docker</h2><p>下載官方的 Docker image，並使用<code>nvidia-smi</code>指令來驗證在 Docker Container 中有抓到 GPU 資訊：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> nvidia-docker run --runtime=nvidia --rm nvidia/cuda nvidia-smi</span><br><span class="line">Tue Mar  2 06:19:09 2018</span><br><span class="line">+-----------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 384.111                Driver Version: 384.111                   |</span><br><span class="line">|-------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|===============================+======================+======================|</span><br><span class="line">|   0  GeForce GTX 106...  Off  | 00000000:01:00.0 Off |                  N/A |</span><br><span class="line">|  0%   35C    P0    15W / 120W |      0MiB /  3013MiB |      2%      Default |</span><br><span class="line">+-------------------------------+----------------------+----------------------+</span><br><span class="line"></span><br><span class="line">+-----------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                       GPU Memory |</span><br><span class="line">|  GPU       PID   Type   Process name                             Usage      |</span><br><span class="line">|=============================================================================|</span><br><span class="line">|  No running processes found                                                 |</span><br><span class="line">+-----------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure></p>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><ol>
+<li><a href="https://github.com/NVIDIA/nvidia-docker#quickstart" target="_blank" rel="noopener">NVIDIA Docker Repository</a></li>
+<li><a href="https://aetros.com/blog/Machine%20Learning/14-11-2017-nvidia-docker2-released" target="_blank" rel="noopener">NVIDIA-Docker version 2 released</a></li>
+</ol>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://ellis-wu.github.io/2018/03/02/nvidia-docker-installation/" data-id="cjydrq2uz000hws2nyosblzcc" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://ellis-wu.github.io/2018/03/02/nvidia-docker-installation/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://ellis-wu.github.io/2018/03/02/nvidia-docker-installation/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/05/02/kubeless-installation/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    基於 Kubernetes 的 Serverless 框架 Kubeless
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2018/03/01/docker-installation/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">在 Ubuntu 上安裝 Docker CE</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+    
+
+
+
+</section>
+            
+                
+<aside id="sidebar">
+    
+        
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">Catalogue</strong>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝環境"><span class="toc-number">1.</span> <span class="toc-text">安裝環境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事情準備"><span class="toc-number">2.</span> <span class="toc-text">事情準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-Docker-CE"><span class="toc-number">3.</span> <span class="toc-text">安裝 Docker CE</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安裝-nvidia-docker"><span class="toc-number">4.</span> <span class="toc-text">安裝 nvidia-docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#驗證-nvidia-docker"><span class="toc-number">5.</span> <span class="toc-text">驗證 nvidia-docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考資料"><span class="toc-number">6.</span> <span class="toc-text">參考資料</span></a></li></ol>
+    </div>
+
+
+    
+    
+    <a id="toTop" href="#top" class=""></a>
+</aside>
+
+ 
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2019 Ellis Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://ellis-wu.github.io/2018/03/02/nvidia-docker-installation/';
+        
+        this.page.identifier = 'nvidia-docker-installation';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'elliswu-blog' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>
